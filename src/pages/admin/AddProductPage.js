@@ -1,17 +1,15 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState } from "react"; // Import React state hook and FormEvent type
-import { useNavigate } from "react-router-dom"; // Import navigation hook from React Router
-import { addProduct } from "../../firebase/productService"; // Import function to add product to Firebase
-// Placeholder function that simulates fetching the current user information
+import { useState } from "react"; // React state hook and FormEvent type
+import { useNavigate } from "react-router-dom"; // Navigation hook
+import { addProduct } from "../../firebase/productService"; // Firebase add product function
+// Simulated current user info (admin)
 const getCurrentUser = () => ({
     uid: "admin-uid",
     role: "admin",
 });
-// Component defined for admin users to add new products.
 export default function AddProductPage() {
-    //Function to programmatically navigate between routes
     const navigate = useNavigate();
-    // Local states for managing form inputs, optional rating fields, error/success messages, and loading status
+    // Form states
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
@@ -22,8 +20,39 @@ export default function AddProductPage() {
     const [errors, setErrors] = useState([]);
     const [successMessage, setSuccessMessage] = useState("");
     const [loading, setLoading] = useState(false);
-    const currentUser = getCurrentUser(); // Get current user data
-    // Validate all form inputs and return any errors
+    const currentUser = getCurrentUser();
+    // Generic input handler
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        switch (name) {
+            case "title":
+                setTitle(value);
+                break;
+            case "description":
+                setDescription(value);
+                break;
+            case "price":
+                setPrice(value);
+                break;
+            case "image":
+                setImage(value);
+                break;
+            case "category":
+                setCategory(value);
+                break;
+            case "ratingRate":
+                const rate = parseFloat(value);
+                setRatingRate(isNaN(rate) ? 0 : rate);
+                break;
+            case "ratingCount":
+                const count = parseInt(value);
+                setRatingCount(isNaN(count) ? 0 : count);
+                break;
+            default:
+                break;
+        }
+    };
+    // Input validation
     const validateInputs = () => {
         const newErrors = [];
         if (!title.trim())
@@ -42,17 +71,15 @@ export default function AddProductPage() {
             newErrors.push("Rating count must be 0 or more");
         return newErrors;
     };
-    // Handle form submission
+    // Submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors([]);
         setSuccessMessage("");
-        // Check if current user is an admin
         if (currentUser.role !== "admin") {
             setErrors(["Only admins can add products."]);
             return;
         }
-        // Validate form and handle errors
         const validationErrors = validateInputs();
         if (validationErrors.length > 0) {
             setErrors(validationErrors);
@@ -60,7 +87,6 @@ export default function AddProductPage() {
         }
         setLoading(true);
         try {
-            // Call Firebase function to add the product
             await addProduct({
                 title: title.trim(),
                 description: description.trim(),
@@ -73,7 +99,6 @@ export default function AddProductPage() {
                     count: ratingCount,
                 },
             });
-            // Show success message and reset form
             setSuccessMessage("Product added successfully!");
             setTitle("");
             setDescription("");
@@ -82,7 +107,6 @@ export default function AddProductPage() {
             setCategory("");
             setRatingRate(0);
             setRatingCount(0);
-            // After 1 second, navigate to manage products page
             setTimeout(() => {
                 navigate("/admin/manage-products");
             }, 1000);
@@ -95,17 +119,11 @@ export default function AddProductPage() {
             setLoading(false);
         }
     };
-    return (_jsxs("div", { className: "app-wrapper", children: [" ", _jsxs("div", { className: "container mt-5 mb-5 px-4 px-sm-5", style: {
-                    maxWidth: "700px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    borderRadius: "8px",
-                    paddingTop: "30px",
-                    paddingBottom: "30px",
-                }, children: [_jsx("h2", { className: "mb-4 text-center", children: "Add New Product" }), errors.length > 0 && (_jsx("div", { className: "alert alert-danger", role: "alert", children: _jsx("ul", { className: "mb-0", children: errors.map((err, idx) => (_jsx("li", { children: err }, idx))) }) })), successMessage && (_jsx("div", { className: "alert alert-success", role: "alert", children: successMessage })), _jsxs("form", { onSubmit: handleSubmit, noValidate: true, className: "d-flex flex-column gap-3 ", children: [_jsxs("div", { children: [_jsxs("label", { htmlFor: "title", className: "form-label", children: ["Title ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "title", type: "text", className: "form-control", value: title, onChange: (e) => setTitle(e.target.value), placeholder: "Enter product title", disabled: loading, required: true, autoComplete: "off" })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "description", className: "form-label", children: ["Description ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("textarea", { id: "description", className: "form-control", value: description, onChange: (e) => setDescription(e.target.value), placeholder: "Enter product description", rows: 3, disabled: loading, required: true, style: { resize: "none" } })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "price", className: "form-label", children: ["Price ($) ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "price", type: "number", min: "0", step: "0.01", className: "form-control", value: price, onChange: (e) => setPrice(e.target.value), placeholder: "Enter price", disabled: loading, required: true })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "image", className: "form-label", children: ["Image URL ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "image", type: "url", className: "form-control", value: image, onChange: (e) => setImage(e.target.value), placeholder: "Image url", disabled: loading, required: true })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "category", className: "form-label", children: ["Category ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "category", type: "text", className: "form-control", value: category, onChange: (e) => setCategory(e.target.value), placeholder: "Enter category", disabled: loading, required: true, autoComplete: "off" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "ratingRate", className: "form-label", children: "Rating (Rate 0-5)" }), _jsx("input", { id: "ratingRate", type: "number", step: "0.1", min: "0", max: "5", className: "form-control", value: ratingRate, onChange: (e) => {
-                                            const val = parseFloat(e.target.value);
-                                            setRatingRate(isNaN(val) ? 0 : val);
-                                        }, disabled: loading })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "ratingCount", className: "form-label", children: "Rating Count" }), _jsx("input", { id: "ratingCount", type: "number", min: "0", className: "form-control", value: ratingCount, onChange: (e) => {
-                                            const val = parseInt(e.target.value);
-                                            setRatingCount(isNaN(val) ? 0 : val);
-                                        }, disabled: loading })] }), _jsx("div", { className: "d-flex justify-content-center mt-3", children: _jsx("button", { type: "submit", className: "btn btn-primary", disabled: loading, "aria-busy": loading, children: loading ? "Adding Product..." : "Add Product" }) })] })] })] }));
+    return (_jsx("div", { className: "app-wrapper", children: _jsxs("div", { className: "container mt-5 mb-5 px-4 px-sm-5", style: {
+                maxWidth: "700px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                borderRadius: "8px",
+                paddingTop: "30px",
+                paddingBottom: "30px",
+            }, children: [_jsx("h2", { className: "mb-4 text-center", children: "Add New Product" }), errors.length > 0 && (_jsx("div", { className: "alert alert-danger", role: "alert", children: _jsx("ul", { className: "mb-0", children: errors.map((err, idx) => (_jsx("li", { children: err }, idx))) }) })), successMessage && (_jsx("div", { className: "alert alert-success", role: "alert", children: successMessage })), _jsxs("form", { onSubmit: handleSubmit, noValidate: true, className: "d-flex flex-column gap-3 ", children: [_jsxs("div", { children: [_jsxs("label", { htmlFor: "title", className: "form-label", children: ["Title ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "title", name: "title", type: "text", className: "form-control", value: title, onChange: handleChange, placeholder: "Enter product title", disabled: loading, required: true, autoComplete: "off" })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "description", className: "form-label", children: ["Description ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("textarea", { id: "description", name: "description", className: "form-control", value: description, onChange: handleChange, placeholder: "Enter product description", rows: 3, disabled: loading, required: true, style: { resize: "none" } })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "price", className: "form-label", children: ["Price ($) ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "price", name: "price", type: "number", min: "0", step: "0.01", className: "form-control", value: price, onChange: handleChange, placeholder: "Enter price", disabled: loading, required: true })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "image", className: "form-label", children: ["Image URL ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "image", name: "image", type: "url", className: "form-control", value: image, onChange: handleChange, placeholder: "Image url", disabled: loading, required: true })] }), _jsxs("div", { children: [_jsxs("label", { htmlFor: "category", className: "form-label", children: ["Category ", _jsx("span", { className: "text-danger", children: "*" })] }), _jsx("input", { id: "category", name: "category", type: "text", className: "form-control", value: category, onChange: handleChange, placeholder: "Enter category", disabled: loading, required: true, autoComplete: "off" })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "ratingRate", className: "form-label", children: "Rating (Rate 0-5)" }), _jsx("input", { id: "ratingRate", name: "ratingRate", type: "number", step: "0.1", min: "0", max: "5", className: "form-control", value: ratingRate, onChange: handleChange, disabled: loading })] }), _jsxs("div", { children: [_jsx("label", { htmlFor: "ratingCount", className: "form-label", children: "Rating Count" }), _jsx("input", { id: "ratingCount", name: "ratingCount", type: "number", min: "0", className: "form-control", value: ratingCount, onChange: handleChange, disabled: loading })] }), _jsx("div", { className: "d-flex justify-content-center mt-3", children: _jsx("button", { type: "submit", className: "btn btn-primary", disabled: loading, "aria-busy": loading, children: loading ? "Adding Product..." : "Add Product" }) })] })] }) }));
 }

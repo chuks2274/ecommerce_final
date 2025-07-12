@@ -37,7 +37,7 @@ export function AdminOrderManagement() {
                 setError("You must be logged in to view orders.");
             }
         });
-        // Fetch all orders from Firestore and map each document to an Order object, spreading all fields except 'id' which is added separately
+        // Fetch all orders from Firestore and map each document to an Order object
         async function fetchOrders() {
             try {
                 setLoading(true);
@@ -154,6 +154,26 @@ export function AdminOrderManagement() {
             setConfirmDeleteId(null);
         }
     }
+    // Helpers to get current order info
+    const getEstimatedDelivery = (orderId) => {
+        const order = orders.find((o) => o.id === orderId);
+        return order?.estimatedDelivery || null;
+    };
+    const getOrderStatus = (orderId) => {
+        const order = orders.find((o) => o.id === orderId);
+        return order?.status || "";
+    };
+    // Centralized handleChange function for order fields
+    const handleChange = (orderId, field, value) => {
+        if (field === "status") {
+            updateStatusAndEstimatedDelivery(orderId, value, getEstimatedDelivery(orderId));
+        }
+        else if (field === "estimatedDelivery") {
+            const newDate = value ? Timestamp.fromDate(new Date(value)) : null;
+            const currentStatus = getOrderStatus(orderId);
+            updateStatusAndEstimatedDelivery(orderId, currentStatus, newDate);
+        }
+    };
     if (loading)
         return _jsx("p", { children: "Loading orders..." });
     if (error)
@@ -170,14 +190,9 @@ export function AdminOrderManagement() {
     return (_jsxs("div", { className: "admin-order-container container mt-4", children: [_jsx("h2", { className: "mb-4 text-center", children: "Admin Order Management" }), updateError && (_jsx("div", { className: "alert alert-danger", role: "alert", children: updateError })), _jsxs("div", { className: "mb-3", children: [_jsx("h5", { children: "Filter by status" }), _jsxs("div", { className: "d-flex align-items-center gap-2", children: [_jsxs("select", { className: "form-select", style: { maxWidth: "200px", minWidth: "150px" }, value: filterStatus, onChange: (e) => {
                                     setCurrentPage(1);
                                     setFilterStatus(e.target.value);
-                                }, children: [_jsx("option", { value: "all", children: "All" }), _jsx("option", { value: "pending", children: "Pending" }), _jsx("option", { value: "in process", children: "In Process" }), _jsx("option", { value: "cancelled", children: "Cancelled" }), _jsx("option", { value: "refunded", children: "Refunded" }), _jsx("option", { value: "shipped", children: "Shipped" }), _jsx("option", { value: "delivered", children: "Delivered" })] }), filterStatus !== "all" && (_jsx("button", { onClick: () => setFilterStatus("all"), className: "btn btn-outline-danger btn-sm", style: { whiteSpace: "nowrap" }, children: "Clear Filter" }))] })] }), _jsx("div", { className: "table-responsive", children: _jsxs("table", { className: "table table-striped table-bordered admin-order-table", children: [_jsx("thead", { className: "table-dark text-center", children: _jsxs("tr", { children: [_jsx("th", { children: "Order ID" }), _jsx("th", { children: "User" }), _jsx("th", { children: "Item Count" }), _jsx("th", { children: "Created At" }), _jsx("th", { children: "Status" }), _jsx("th", { children: "Estimated Delivery (Edit)" }), _jsx("th", { children: "Estimated Delivery (Display)" }), _jsx("th", { children: "Total" }), _jsx("th", { children: "Actions" }), _jsx("th", { children: "Delete" })] }) }), _jsx("tbody", { children: currentOrders.map((order) => (_jsxs("tr", { children: [_jsx("td", { children: order.id }), _jsx("td", { className: "text-nowrap", children: order.userId }), _jsx("td", { children: order.items.length }), _jsx("td", { children: new Date(order.createdAt.seconds * 1000).toLocaleString() }), _jsx("td", { children: _jsxs("select", { value: order.status, onChange: (e) => updateStatusAndEstimatedDelivery(order.id, e.target.value, order.estimatedDelivery), disabled: savingOrderId === order.id, className: "form-select form-select-sm", style: { minWidth: "130px" }, children: [_jsx("option", { value: "pending", children: "Pending" }), _jsx("option", { value: "in process", children: "In Process" }), _jsx("option", { value: "refunded", children: "Refunded" }), user?.isAdmin && (_jsxs(_Fragment, { children: [_jsx("option", { value: "shipped", children: "Shipped" }), _jsx("option", { value: "delivered", children: "Delivered" })] }))] }) }), _jsx("td", { children: _jsx("input", { type: "datetime-local", value: order.estimatedDelivery
+                                }, children: [_jsx("option", { value: "all", children: "All" }), _jsx("option", { value: "pending", children: "Pending" }), _jsx("option", { value: "in process", children: "In Process" }), _jsx("option", { value: "cancelled", children: "Cancelled" }), _jsx("option", { value: "refunded", children: "Refunded" }), _jsx("option", { value: "shipped", children: "Shipped" }), _jsx("option", { value: "delivered", children: "Delivered" })] }), filterStatus !== "all" && (_jsx("button", { onClick: () => setFilterStatus("all"), className: "btn btn-outline-danger btn-sm", style: { whiteSpace: "nowrap" }, children: "Clear Filter" }))] })] }), _jsx("div", { className: "table-responsive", children: _jsxs("table", { className: "table table-striped table-bordered admin-order-table", children: [_jsx("thead", { className: "table-dark text-center", children: _jsxs("tr", { children: [_jsx("th", { children: "Order ID" }), _jsx("th", { children: "User" }), _jsx("th", { children: "Item Count" }), _jsx("th", { children: "Created At" }), _jsx("th", { children: "Status" }), _jsx("th", { children: "Estimated Delivery (Edit)" }), _jsx("th", { children: "Estimated Delivery (Display)" }), _jsx("th", { children: "Total" }), _jsx("th", { children: "Actions" }), _jsx("th", { children: "Delete" })] }) }), _jsx("tbody", { children: currentOrders.map((order) => (_jsxs("tr", { children: [_jsx("td", { children: order.id }), _jsx("td", { className: "text-nowrap", children: order.userId }), _jsx("td", { children: order.items.length }), _jsx("td", { children: new Date(order.createdAt.seconds * 1000).toLocaleString() }), _jsx("td", { children: _jsxs("select", { value: order.status, onChange: (e) => handleChange(order.id, "status", e.target.value), disabled: savingOrderId === order.id, className: "form-select form-select-sm", style: { minWidth: "130px" }, children: [_jsx("option", { value: "pending", children: "Pending" }), _jsx("option", { value: "in process", children: "In Process" }), _jsx("option", { value: "refunded", children: "Refunded" }), user?.isAdmin && (_jsxs(_Fragment, { children: [_jsx("option", { value: "shipped", children: "Shipped" }), _jsx("option", { value: "delivered", children: "Delivered" })] }))] }) }), _jsx("td", { children: _jsx("input", { type: "datetime-local", value: order.estimatedDelivery
                                                 ? toLocalDatetimeInputString(new Date(order.estimatedDelivery.seconds * 1000))
-                                                : "", onChange: (e) => {
-                                                const newDate = e.target.value
-                                                    ? Timestamp.fromDate(new Date(e.target.value))
-                                                    : null;
-                                                updateStatusAndEstimatedDelivery(order.id, order.status, newDate);
-                                            }, disabled: savingOrderId === order.id, className: "form-control form-control-sm" }) }), _jsx("td", { children: order.estimatedDelivery
+                                                : "", onChange: (e) => handleChange(order.id, "estimatedDelivery", e.target.value), disabled: savingOrderId === order.id, className: "form-control form-control-sm" }) }), _jsx("td", { children: order.estimatedDelivery
                                             ? new Date(order.estimatedDelivery.seconds * 1000).toLocaleString("en-US", {
                                                 month: "short",
                                                 day: "numeric",
@@ -186,8 +201,7 @@ export function AdminOrderManagement() {
                                                 minute: "2-digit",
                                                 hour12: true,
                                             })
-                                            : "Not set" }), _jsxs("td", { children: ["$", order.total.toFixed(2)] }), _jsxs("td", { children: [savingOrderId === order.id && (_jsx("span", { className: "text-muted d-block mb-1", children: "Saving..." })), _jsxs("div", { className: "d-flex flex-column gap-2", children: [_jsx("button", { className: "btn btn-sm btn-primary", disabled: savingOrderId === order.id || order.status === "shipped", onClick: () => updateStatusAndEstimatedDelivery(order.id, "shipped", order.estimatedDelivery), style: { whiteSpace: "nowrap" }, children: "Mark as Shipped" }), _jsx("button", { className: "btn btn-sm btn-success", disabled: savingOrderId === order.id ||
-                                                            order.status === "delivered", onClick: () => updateStatusAndEstimatedDelivery(order.id, "delivered", order.estimatedDelivery), style: { whiteSpace: "nowrap" }, children: "Mark as Delivered" })] })] }), _jsx("td", { className: "text-center", children: confirmDeleteId === order.id ? (_jsxs("div", { className: "d-flex flex-column gap-1", children: [_jsx("button", { className: "btn btn-sm btn-danger", onClick: () => deleteOrder(order.id), disabled: savingOrderId === order.id, children: "Yes, Delete" }), _jsx("button", { className: "btn btn-sm btn-secondary", onClick: () => setConfirmDeleteId(null), children: "Cancel" })] })) : (_jsx("button", { className: "btn btn-sm btn-outline-danger", onClick: () => setConfirmDeleteId(order.id), disabled: savingOrderId === order.id, onMouseEnter: (e) => {
+                                            : "Not set" }), _jsxs("td", { children: ["$", order.total.toFixed(2)] }), _jsxs("td", { children: [savingOrderId === order.id && (_jsx("span", { className: "text-muted d-block mb-1", children: "Saving..." })), _jsxs("div", { className: "d-flex flex-column gap-2", children: [_jsx("button", { className: "btn btn-sm btn-primary", disabled: savingOrderId === order.id || order.status === "shipped", onClick: () => updateStatusAndEstimatedDelivery(order.id, "shipped", order.estimatedDelivery), style: { whiteSpace: "nowrap" }, children: "Mark as Shipped" }), _jsx("button", { className: "btn btn-sm btn-success", disabled: savingOrderId === order.id || order.status === "delivered", onClick: () => updateStatusAndEstimatedDelivery(order.id, "delivered", order.estimatedDelivery), style: { whiteSpace: "nowrap" }, children: "Mark as Delivered" })] })] }), _jsx("td", { className: "text-center", children: confirmDeleteId === order.id ? (_jsxs("div", { className: "d-flex flex-column gap-1", children: [_jsx("button", { className: "btn btn-sm btn-danger", onClick: () => deleteOrder(order.id), disabled: savingOrderId === order.id, children: "Yes, Delete" }), _jsx("button", { className: "btn btn-sm btn-secondary", onClick: () => setConfirmDeleteId(null), children: "Cancel" })] })) : (_jsx("button", { className: "btn btn-sm btn-outline-danger", onClick: () => setConfirmDeleteId(order.id), disabled: savingOrderId === order.id, onMouseEnter: (e) => {
                                                 e.currentTarget.classList.remove("btn-outline-danger");
                                                 e.currentTarget.classList.add("btn-danger");
                                             }, onMouseLeave: (e) => {
