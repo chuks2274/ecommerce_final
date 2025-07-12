@@ -14,7 +14,7 @@ module.exports = {
     "^react-icons/fa$": "<rootDir>/src/__mocks__/react-icons/fa.tsx",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "^src/firebase/firebase$": "<rootDir>/src/__mocks__/firebase.ts",
-    "^../config/env$": "<rootDir>/src/__mocks__/env.ts", // Added mock for env import
+    "^..\\/config\\/env$": "<rootDir>/src/__mocks__/env.ts", // Corrected escaped regex pattern
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   testMatch: ["**/__tests__/**/*.{test,spec}.{ts,tsx}"],
