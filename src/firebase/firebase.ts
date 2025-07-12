@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { firebaseEnv } from "../config/env"; // Your config object
+import { firebaseEnv } from "@config/env";
 
 const firebaseConfig = { ...firebaseEnv };
 

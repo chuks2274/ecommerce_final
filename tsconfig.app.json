@@ -22,7 +22,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+
+    "baseUrl": "src",
+    "paths": {
+      "@config/env": ["config/env"]
+    }
   },
   "include": ["src", "__mocks__", "jest.setup.ts", "__tests__"]
 }
