@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { FaStar, FaRegStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa"; // Only import FaStar
 import type { Product } from "../types";
 import { useNavigate } from "react-router-dom";
 import "./components.css";
@@ -34,7 +34,13 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
         i < filledStars ? (
           <FaStar key={i} className="text-warning me-1" aria-label="Filled star" />
         ) : (
-          <FaRegStar key={i} className="text-warning me-1" aria-label="Empty star" />
+          // Use FaStar with lighter color for empty star effect
+          <FaStar
+            key={i}
+            className="me-1"
+            aria-label="Empty star"
+            style={{ color: "lightgray" }}
+          />
         )
       );
   }, [rating?.rate]);

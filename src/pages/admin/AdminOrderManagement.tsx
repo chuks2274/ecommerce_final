@@ -51,9 +51,7 @@ export function AdminOrderManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [user, setUser] = useState<{ uid: string; isAdmin?: boolean } | null>(
-    null
-  );
+  const [user, setUser] = useState<{ uid: string; isAdmin?: boolean } | null>(null);
 
   // Number of orders per page for pagination
   const ordersPerPage = 5;
@@ -74,7 +72,7 @@ export function AdminOrderManagement() {
       }
     });
 
-    // Fetch all orders from Firestore and map each document to an Order object, spreading all fields except 'id' which is added separately
+    // Fetch all orders from Firestore and map each document to an Order object
     async function fetchOrders() {
       try {
         setLoading(true);
@@ -87,9 +85,7 @@ export function AdminOrderManagement() {
         }));
 
         // Sort orders by newest first (most recent createdAt first)
-        setOrders(
-          data.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
-        );
+        setOrders(data.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds));
       } catch (err) {
         const error = err as FirebaseError;
         setError("Failed to load orders.");
@@ -210,6 +206,32 @@ export function AdminOrderManagement() {
     }
   }
 
+  // Helpers to get current order info
+  const getEstimatedDelivery = (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    return order?.estimatedDelivery || null;
+  };
+
+  const getOrderStatus = (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    return order?.status || "";
+  };
+
+  // Centralized handleChange function for order fields
+  const handleChange = (
+    orderId: string,
+    field: "status" | "estimatedDelivery",
+    value: string
+  ) => {
+    if (field === "status") {
+      updateStatusAndEstimatedDelivery(orderId, value, getEstimatedDelivery(orderId));
+    } else if (field === "estimatedDelivery") {
+      const newDate = value ? Timestamp.fromDate(new Date(value)) : null;
+      const currentStatus = getOrderStatus(orderId);
+      updateStatusAndEstimatedDelivery(orderId, currentStatus, newDate);
+    }
+  };
+
   if (loading) return <p>Loading orders...</p>;
 
   if (error) return <p className="text-danger">{error}</p>;
@@ -223,10 +245,7 @@ export function AdminOrderManagement() {
   // Calculate which orders to show for current page
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(
-    indexOfFirstOrder,
-    indexOfLastOrder
-  );
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
   return (
@@ -299,21 +318,13 @@ export function AdminOrderManagement() {
                 <td>{order.id}</td>
                 <td className="text-nowrap">{order.userId}</td>
                 <td>{order.items.length}</td>
-                <td>
-                  {new Date(order.createdAt.seconds * 1000).toLocaleString()}
-                </td>
+                <td>{new Date(order.createdAt.seconds * 1000).toLocaleString()}</td>
 
                 {/* Status dropdown */}
                 <td>
                   <select
                     value={order.status}
-                    onChange={(e) =>
-                      updateStatusAndEstimatedDelivery(
-                        order.id,
-                        e.target.value,
-                        order.estimatedDelivery
-                      )
-                    }
+                    onChange={(e) => handleChange(order.id, "status", e.target.value)}
                     disabled={savingOrderId === order.id}
                     className="form-select form-select-sm"
                     style={{ minWidth: "130px" }}
@@ -336,22 +347,12 @@ export function AdminOrderManagement() {
                     type="datetime-local"
                     value={
                       order.estimatedDelivery
-                        ? toLocalDatetimeInputString(
-                            new Date(order.estimatedDelivery.seconds * 1000)
-                          )
+                        ? toLocalDatetimeInputString(new Date(order.estimatedDelivery.seconds * 1000))
                         : ""
                     }
-                    onChange={(e) => {
-                      const newDate = e.target.value
-                        ? Timestamp.fromDate(new Date(e.target.value))
-                        : null;
-
-                      updateStatusAndEstimatedDelivery(
-                        order.id,
-                        order.status,
-                        newDate
-                      );
-                    }}
+                    onChange={(e) =>
+                      handleChange(order.id, "estimatedDelivery", e.target.value)
+                    }
                     disabled={savingOrderId === order.id}
                     className="form-control form-control-sm"
                   />
@@ -360,9 +361,7 @@ export function AdminOrderManagement() {
                 {/* Estimated delivery display */}
                 <td>
                   {order.estimatedDelivery
-                    ? new Date(
-                        order.estimatedDelivery.seconds * 1000
-                      ).toLocaleString("en-US", {
+                    ? new Date(order.estimatedDelivery.seconds * 1000).toLocaleString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -384,9 +383,7 @@ export function AdminOrderManagement() {
                   <div className="d-flex flex-column gap-2">
                     <button
                       className="btn btn-sm btn-primary"
-                      disabled={
-                        savingOrderId === order.id || order.status === "shipped"
-                      }
+                      disabled={savingOrderId === order.id || order.status === "shipped"}
                       onClick={() =>
                         updateStatusAndEstimatedDelivery(
                           order.id,
@@ -400,10 +397,7 @@ export function AdminOrderManagement() {
                     </button>
                     <button
                       className="btn btn-sm btn-success"
-                      disabled={
-                        savingOrderId === order.id ||
-                        order.status === "delivered"
-                      }
+                      disabled={savingOrderId === order.id || order.status === "delivered"}
                       onClick={() =>
                         updateStatusAndEstimatedDelivery(
                           order.id,
@@ -474,9 +468,7 @@ export function AdminOrderManagement() {
         </span>
         <button
           className="btn btn-primary"
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
           Next ➡️

@@ -26,7 +26,7 @@
 
     "baseUrl": "src",
     "paths": {
-      "@config/env": ["config/env"]
+      "@config/*": ["config/*"]
     }
   },
   "include": ["src", "__mocks__", "jest.setup.ts", "__tests__"]

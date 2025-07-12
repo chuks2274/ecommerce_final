@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from "react"; // Import React hooks for state, side effects, and memoized functions
 import { fetchCategories } from "../firebase/productService"; // Import a function to get product categories from Firebase
-import { Form, Button, Spinner } from "react-bootstrap"; // Import Bootstrap UI components
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import Spinner from "react-bootstrap/Spinner";
+ 
 
 // Define props the component expects. It receives a function to call when the category changes.
 interface Props {

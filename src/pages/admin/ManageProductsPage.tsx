@@ -1,29 +1,25 @@
-import { useEffect, useState, useCallback, useRef } from "react"; // Import state, side effects, memoization, and references
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   doc,
   deleteDoc,
   updateDoc,
   QueryDocumentSnapshot,
   type DocumentData,
-} from "firebase/firestore"; // Import Firestore functions for database operations
-import { db } from "../../firebase/firebase"; // Import the Firestore database configuration
-import { Button, Modal, Form, Spinner, Alert } from "react-bootstrap"; // Import Bootstrap components for UI
+} from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+import { Button, Modal, Form, Spinner, Alert } from "react-bootstrap";
 import {
   fetchProductsByPage,
   type Product,
-} from "../../services/fetchProductsByPage"; // Import a function to fetch products by page and its type
+} from "../../services/fetchProductsByPage";
 
-// Main component that displays, edits, deletes, and paginates products
 export default function ManageProductsPage() {
-  // Local state for product list, loading status, and error handling
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Keep track of the start document for each page to enable Firestore pagination
   const pageStartDocsRef = useRef<QueryDocumentSnapshot<DocumentData>[]>([]);
 
-  // Local state for pagination, delete confirmation, loading states, and editing modal handling
   const [currentPage, setCurrentPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -31,7 +27,6 @@ export default function ManageProductsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Function to load a specific page of products
   const goToPage = useCallback(
     (page: number) => {
       setCurrentPage(page);
@@ -44,30 +39,24 @@ export default function ManageProductsPage() {
         setError
       );
     },
-    // Dependency array with stable state setter functions (safe to include)
     [setProducts, setHasNextPage, setLoading, setError]
   );
 
-  // Load first page when component mounts
   useEffect(() => {
     goToPage(0);
   }, [goToPage]);
 
-  // Function to delete a product
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     setError(null);
     try {
-      await deleteDoc(doc(db, "products", id)); // Delete from Firestore
-
-      // If only one product remains on a non-first page, go back one page; otherwise, reload current page
+      await deleteDoc(doc(db, "products", id));
       if (products.length === 1 && currentPage > 0) {
         pageStartDocsRef.current.splice(currentPage, 1);
         goToPage(currentPage - 1);
       } else {
         goToPage(currentPage);
       }
-
       setConfirmDeleteId(null);
     } catch (err) {
       console.error("Delete failed:", err);
@@ -77,11 +66,9 @@ export default function ManageProductsPage() {
     }
   };
 
-  // Function to update product data
   const handleUpdate = async () => {
     if (!editingProduct) return;
 
-    // Validate input fields before sending update
     if (!editingProduct.title.trim()) {
       setError("Title cannot be empty.");
       return;
@@ -102,7 +89,6 @@ export default function ManageProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Update product in Firestore
       await updateDoc(doc(db, "products", editingProduct.id), {
         title: editingProduct.title.trim(),
         description: editingProduct.description?.trim() ?? "",
@@ -125,25 +111,71 @@ export default function ManageProductsPage() {
     }
   };
 
-  // Open edit modal and load selected product
   const openModal = (product: Product) => {
-    setEditingProduct({ ...product }); // Clone product
+    setEditingProduct({ ...product });
     setError(null);
     setShowEditModal(true);
   };
 
-  // Close modal and reset state
   const closeModal = () => {
     setShowEditModal(false);
     setEditingProduct(null);
     setError(null);
   };
 
+  // ✅ FIXED handleChange with proper rating typing
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (!editingProduct) return;
+
+    const { name, value, type } = e.target;
+
+    if (name.startsWith("rating.")) {
+      const ratingKey = name.split(".")[1] as keyof NonNullable<Product["rating"]>;
+      let parsedValue: number = 0;
+
+      if (type === "number") {
+        parsedValue =
+          ratingKey === "count"
+            ? parseInt(value) || 0
+            : parseFloat(value) || 0;
+      }
+
+      // Clamp values
+      if (ratingKey === "rate") {
+        parsedValue = Math.min(5, Math.max(0, parsedValue));
+      } else if (ratingKey === "count") {
+        parsedValue = Math.max(0, parsedValue);
+      }
+
+      setEditingProduct((prev) => ({
+        ...prev!,
+        rating: {
+          ...(prev?.rating ?? { rate: 0, count: 0 }),
+          [ratingKey]: parsedValue,
+        },
+      }));
+
+      return;
+    }
+
+    let newValue: string | number = value;
+
+    if (type === "number") {
+      newValue = Math.max(0, parseFloat(value) || 0);
+    }
+
+    setEditingProduct((prev) => ({
+      ...prev!,
+      [name]: newValue,
+    }));
+  };
+
   return (
     <div className="container mt-5">
       <h2 className="mb-4 text-center">Manage Products</h2>
 
-      {/* Show error alert if there's any */}
       {error && (
         <Alert
           variant="danger"
@@ -155,17 +187,14 @@ export default function ManageProductsPage() {
         </Alert>
       )}
 
-      {/* Show loading spinner while fetching */}
       {loading && !products.length ? (
         <div className="d-flex justify-content-center my-5">
           <Spinner animation="border" role="status" />
         </div>
       ) : products.length === 0 ? (
-        // No products found
         <p className="text-center text-muted">No products found.</p>
       ) : (
         <>
-          {/* Table of products */}
           <div className="table-responsive">
             <table className="table table-bordered align-middle">
               <thead className="table-light">
@@ -205,14 +234,11 @@ export default function ManageProductsPage() {
                     </td>
                     <td>
                       {prod.rating && prod.rating.rate > 0
-                        ? `${prod.rating.rate.toFixed(1)} (${
-                            prod.rating.count
-                          })`
+                        ? `$${prod.rating.rate.toFixed(1)} (${prod.rating.count})`
                         : "N/A"}
                     </td>
                     <td>
                       <div className="d-flex flex-column gap-2">
-                        {/* Edit Button */}
                         <Button
                           variant="primary"
                           size="sm"
@@ -223,7 +249,6 @@ export default function ManageProductsPage() {
                           Edit
                         </Button>
 
-                        {/* Delete confirmation */}
                         {confirmDeleteId === prod.id ? (
                           <>
                             <div className="text-danger small">
@@ -260,7 +285,6 @@ export default function ManageProductsPage() {
                             </div>
                           </>
                         ) : (
-                          // Show delete button if not confirming
                           <Button
                             variant="outline-danger"
                             size="sm"
@@ -279,7 +303,6 @@ export default function ManageProductsPage() {
             </table>
           </div>
 
-          {/* Pagination buttons */}
           <div className="d-flex justify-content-center align-items-center gap-2 my-4 flex-wrap">
             <Button
               className="me-2"
@@ -306,7 +329,6 @@ export default function ManageProductsPage() {
         </>
       )}
 
-      {/* Modal for editing product */}
       <Modal
         show={showEditModal}
         onHide={closeModal}
@@ -320,94 +342,68 @@ export default function ManageProductsPage() {
         {editingProduct && (
           <Modal.Body>
             <Form>
-              {/* Title Field */}
               <Form.Group className="mb-3" controlId="editProductTitle">
                 <Form.Label>Title</Form.Label>
                 <Form.Control
                   type="text"
+                  name="title"
                   value={editingProduct.title}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      title: e.target.value,
-                    })
-                  }
+                  onChange={handleChange}
                   autoFocus
                   required
                   maxLength={100}
                 />
               </Form.Group>
 
-              {/* Description Field */}
               <Form.Group className="mb-3" controlId="editProductDescription">
                 <Form.Label>Description</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
+                  name="description"
                   value={editingProduct.description || ""}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      description: e.target.value,
-                    })
-                  }
+                  onChange={handleChange}
                   maxLength={1000}
                   style={{ resize: "none" }}
                 />
               </Form.Group>
 
-              {/* Price Field */}
               <Form.Group className="mb-3" controlId="editProductPrice">
                 <Form.Label>Price</Form.Label>
                 <Form.Control
                   type="number"
                   min={0}
                   step="0.01"
+                  name="price"
                   value={editingProduct.price}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      price: Math.max(0, parseFloat(e.target.value) || 0),
-                    })
-                  }
+                  onChange={handleChange}
                   required
                 />
               </Form.Group>
 
-              {/* Image Field */}
               <Form.Group className="mb-3" controlId="editProductImage">
                 <Form.Label>Image URL</Form.Label>
                 <Form.Control
                   type="url"
+                  name="image"
                   value={editingProduct.image}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      image: e.target.value,
-                    })
-                  }
+                  onChange={handleChange}
                   required
                 />
               </Form.Group>
 
-              {/* Category Field */}
               <Form.Group className="mb-3" controlId="editProductCategory">
                 <Form.Label>Category</Form.Label>
                 <Form.Control
                   type="text"
+                  name="category"
                   value={editingProduct.category}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      category: e.target.value,
-                    })
-                  }
+                  onChange={handleChange}
                   required
                   maxLength={50}
                 />
               </Form.Group>
 
-              {/* Rating Rate */}
               <Form.Group className="mb-3" controlId="editProductRatingRate">
                 <Form.Label>Rating (0 to 5)</Form.Label>
                 <Form.Control
@@ -415,45 +411,26 @@ export default function ManageProductsPage() {
                   step="0.1"
                   min={0}
                   max={5}
+                  name="rating.rate"
                   value={editingProduct.rating?.rate ?? 0}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      rating: {
-                        count: editingProduct.rating?.count ?? 0,
-                        rate: Math.min(
-                          5,
-                          Math.max(0, parseFloat(e.target.value) || 0)
-                        ),
-                      },
-                    })
-                  }
+                  onChange={handleChange}
                 />
               </Form.Group>
 
-              {/* Rating Count */}
               <Form.Group className="mb-3" controlId="editProductRatingCount">
                 <Form.Label>Rating Count</Form.Label>
                 <Form.Control
                   type="number"
                   min={0}
+                  name="rating.count"
                   value={editingProduct.rating?.count ?? 0}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      rating: {
-                        rate: editingProduct.rating?.rate ?? 0,
-                        count: Math.max(0, parseInt(e.target.value) || 0),
-                      },
-                    })
-                  }
+                  onChange={handleChange}
                 />
               </Form.Group>
             </Form>
           </Modal.Body>
         )}
 
-        {/* Modal footer with action buttons */}
         <Modal.Footer>
           <Button variant="secondary" onClick={closeModal} disabled={loading}>
             Cancel
