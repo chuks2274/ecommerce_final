@@ -12,7 +12,7 @@ module.exports = {
   },
   moduleNameMapper: {
     "^react-icons/fa$": "<rootDir>/src/__mocks__/react-icons/fa.tsx",
-    "\\.(css|less|scss|sass)$": "<rootDir>/src/__mocks__/styleMock.js",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "^src/firebase/firebase$": "<rootDir>/src/__mocks__/firebase.ts",
   },
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
