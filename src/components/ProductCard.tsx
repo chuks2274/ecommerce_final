@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
-import { FaStar, FaRegStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
+import { FaRegStar } from "react-icons/fa6";
 import type { Product } from "../types";
 import { useNavigate } from "react-router-dom";
 import "./components.css";
@@ -26,18 +27,18 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
     category = "",
   } = product || {};
 
- const stars = useMemo(() => {
-  const filledStars = Math.round(rating?.rate || 0);
-  return Array(5)
-    .fill(0)
-    .map((_, i) =>
-      i < filledStars ? (
-        <FaStar key={i} className="text-warning me-1" aria-label="Filled star" />
-      ) : (
-        <FaRegStar key={i} className="text-warning me-1" aria-label="Empty star" />
-      )
-    );
-}, [rating?.rate]);
+  const stars = useMemo(() => {
+    const filledStars = Math.round(rating?.rate || 0);
+    return Array(5)
+      .fill(0)
+      .map((_, i) =>
+        i < filledStars ? (
+          <FaStar key={i} className="text-warning me-1" aria-label="Filled star" />
+        ) : (
+          <FaRegStar key={i} className="text-warning me-1" aria-label="Empty star" />
+        )
+      );
+  }, [rating?.rate]);
 
   const handleViewReviews = useCallback(() => {
     if (!id) return;
