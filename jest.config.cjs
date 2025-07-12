@@ -5,7 +5,7 @@ module.exports = {
       "ts-jest",
       {
         tsconfig: "tsconfig.app.json",
-        useESM: true,
+        // useESM: true,  // ❌ Removed to fix Jest + ts-jest module issues
       },
     ],
     "^.+\\.(js|jsx)$": "babel-jest",
