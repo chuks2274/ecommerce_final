@@ -24,9 +24,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
 
-    "baseUrl": "src",
+    "baseUrl": "./src",
     "paths": {
-      "@config/*": ["config/*"]
+      "src/*": ["*"]
     }
   },
   "include": ["src", "__mocks__", "jest.setup.ts", "__tests__"]
