@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { FaStar } from "react-icons/fa";
-import { FaRegStar } from "react-icons/fa6";
+import { FaStar, FaRegStar } from "react-icons/fa";
 import type { Product } from "../types";
 import { useNavigate } from "react-router-dom";
 import "./components.css";
