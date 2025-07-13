@@ -1,28 +1,57 @@
-name: CI Build and Test
+# This is the name of the workflow shown on GitHub
+name: CI Build, Test, and Deploy
 
+# Run this workflow on push to main
 on:
   push:
     branches:
       - main
 
+# First job: build and test the application
 jobs:
   build-and-test:
+    # Run this job on the latest Ubuntu environment
     runs-on: ubuntu-latest
-
     steps:
+      # Step 1: Checkout the repository code
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # Step 2: Set up Node.js (version 18)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # or your project’s Node version
+          node-version: 18
 
+      # Step 3: Install dependencies using npm
       - name: Install dependencies
         run: npm install
 
+      # Step 4: Run all test cases (defined in your project)
       - name: Run tests
         run: npm test
 
+      # Step 5: Build the project for production
       - name: Build project
         run: npm run build
+
+  # Second job: deploy the application to Vercel (only if tests pass)
+  deploy:
+    # This job depends on build-and-test and only runs if it succeeds
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # Run this job only if the previous one passed
+    if: success()
+
+    steps:
+      # Step 1: Checkout the repository again (fresh clone)
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # Step 2: Install the Vercel CLI globally
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Step 3: Deploy the project to Vercel using the token stored in secrets
+      - name: Deploy to Vercel
+        run: vercel --prod --token=$VERCEL_TOKEN
