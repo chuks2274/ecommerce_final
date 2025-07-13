@@ -56,4 +56,8 @@ jobs:
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel --prod --token=$VERCEL_TOKEN --confirm
+        run: |
+          echo "Deploying to Vercel..."
+          DEPLOY_URL=$(vercel --prod --token=$VERCEL_TOKEN --confirm)
+          echo " Deployment complete:"
+          echo " $DEPLOY_URL"
