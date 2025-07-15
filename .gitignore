@@ -34,9 +34,6 @@ dist-ssr/
 src/**/*.js
 src/**/*.js.map
 
-# Firebase config - ignore real config with secrets, keep mocks outside ignored folders
-src/config/env.ts
-
 # Jest cache and coverage
 jest.config.ts
 coverage/
