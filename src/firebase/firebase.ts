@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app"; // Import functions to initialize or get Firebase app
 import { getAuth } from "firebase/auth"; // Import function to get Firebase authentication service
 import { getFirestore } from "firebase/firestore";  // Import function to get Firestore database service
-import { firebaseEnv } from "src/config/env"; // Import Firebase config variables from env file
+import { firebaseEnv } from "../config/env"; // Import Firebase config variables from env file
 
 // Create config object from environment variables
 const firebaseConfig = { ...firebaseEnv };
