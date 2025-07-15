@@ -1,31 +1,48 @@
-import { useEffect } from "react"; // Import useEffect hook to run code when data changes
-import { useSelector, useDispatch } from "react-redux"; // Import useSelector to read data from Redux and useDispatch to send actions
-import { saveCart } from "../redux/slices/cartSlice"; // Import the saveCart action to save the cart to the database
-import type { AppDispatch, RootState } from "../redux/store"; // Import types for correctly typing the dispatch and state
+import { useEffect, useRef } from "react"; // Import React hooks: useEffect for side effects, useRef to store mutable value
+import { useAppSelector } from "../redux/hooks"; // Import hook to read Redux state with types
+import { useDispatch } from "react-redux"; // Import hook to dispatch Redux actions
+import { saveCart } from "../redux/slices/cartSlice"; // Import action to save cart data
+import type { AppDispatch } from "../redux/store"; // Import type for dispatch function with thunk support
 
-// Define the CartAutoSave component
+// Define a component that automatically saves the user's cart to the backend when it changes
 const CartAutoSave = () => {
 
-  // Get the Redux dispatch function to send actions
+  // Create a dispatch function to send acyions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get the current cart items from Redux store
-  const items = useSelector((state: RootState) => state.cart.items);
+  // Get current logged-in user's ID from Redux state
+  const userId = useAppSelector((state) => state.auth.user?.uid);
 
-  // Get the current user's ID from Redux store
-  const userId = useSelector((state: RootState) => state.auth.user?.uid);
+  // Get current cart items from Redux state
+  const cartItems = useAppSelector((state) => state.cart.items);
 
-  // Run this effect whenever cart items or userId change
+  // Store timeout ID for debouncing save requests
+  const debounceTimeout = useRef<number | null>(null);
+
   useEffect(() => {
-    // If the user is logged in, save the cart
-    if (userId) {
-      dispatch(saveCart({ userId, items }));
+    // If user is not logged in, do nothing
+    if (!userId) return;
+    
+     // If a save timeout already exists, clear it to reset debounce timer
+    if (debounceTimeout.current !== null) {
+      window.clearTimeout(debounceTimeout.current);
     }
-  }, [items, userId, dispatch]); // Run when items, userId, or dispatch changes
+    // Set a new timeout to save the cart after 500ms of no changes
+    debounceTimeout.current = window.setTimeout(() => {
 
-  // This component does not render anything
+      // Dispatch saveCart action with user ID and current cart items
+      dispatch(saveCart({ userId, items: cartItems }));
+    }, 500);  
+     // Cleanup function runs before next effect or unmount
+    return () => {
+      // Clear the timeout if it exists to avoid multiple saves
+      if (debounceTimeout.current !== null) {
+        window.clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [cartItems, userId, dispatch]);  // Run when cart items, user ID, or dispatch change
+
   return null;
 };
 
-// Export the component to use it in other parts of the app
-export default CartAutoSave;
+export default CartAutoSave; // Export component for use elsewhere

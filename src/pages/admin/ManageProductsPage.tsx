@@ -1,25 +1,29 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react"; // Import React hooks we need
 import {
   doc,
   deleteDoc,
   updateDoc,
   QueryDocumentSnapshot,
   type DocumentData,
-} from "firebase/firestore";
-import { db } from "../../firebase/firebase";
-import { Button, Modal, Form, Spinner, Alert } from "react-bootstrap";
+} from "firebase/firestore"; // Import Firestore functions and types
+import { db } from "../../firebase/firebase"; // Import Firebase Firestore database instance
+import { Button, Modal, Form, Spinner, Alert } from "react-bootstrap"; // Import Bootstrap UI components
 import {
   fetchProductsByPage,
   type Product,
-} from "../../services/fetchProductsByPage";
+} from "../../services/fetchProductsByPage"; // Import function to fetch products by page and Product type
+import "../pages.css"; // Import global CSS styling for the page
 
+ // Main component for managing products in admin page
 export default function ManageProductsPage() {
+
+  // Keep track of Firestore document snapshots for pagination
+  const pageStartDocsRef = useRef<QueryDocumentSnapshot<DocumentData>[]>([]);
+
+  // Local state to manage products list, loading/error status, pagination, deletion, and editing UI controls
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const pageStartDocsRef = useRef<QueryDocumentSnapshot<DocumentData>[]>([]);
-
   const [currentPage, setCurrentPage] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -27,6 +31,7 @@ export default function ManageProductsPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Function to load products for given page
   const goToPage = useCallback(
     (page: number) => {
       setCurrentPage(page);
@@ -39,22 +44,31 @@ export default function ManageProductsPage() {
         setError
       );
     },
-    [setProducts, setHasNextPage, setLoading, setError]
+    [setProducts, setHasNextPage, setLoading, setError] // Run when any of these setters change
   );
-
+ // Load first page on component mount
   useEffect(() => {
     goToPage(0);
   }, [goToPage]);
 
+  // Delete product by id
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     setError(null);
     try {
+      // delete from Firestore
       await deleteDoc(doc(db, "products", id));
+
+      // If last product on page and not first page, go back one page
       if (products.length === 1 && currentPage > 0) {
+
+         // remove page start doc for current page
         pageStartDocsRef.current.splice(currentPage, 1);
+
+         // go to previous page
         goToPage(currentPage - 1);
       } else {
+        // reload current page
         goToPage(currentPage);
       }
       setConfirmDeleteId(null);
@@ -65,10 +79,13 @@ export default function ManageProductsPage() {
       setDeletingId(null);
     }
   };
-
+ // Update product details in Firestore
   const handleUpdate = async () => {
+
+    // if no product editing, do nothing
     if (!editingProduct) return;
 
+     // Validate inputs before updating
     if (!editingProduct.title.trim()) {
       setError("Title cannot be empty.");
       return;
@@ -89,6 +106,7 @@ export default function ManageProductsPage() {
     setLoading(true);
     setError(null);
     try {
+      // Update product document in Firestore with trimmed and validated fields including nested rating info
       await updateDoc(doc(db, "products", editingProduct.id), {
         title: editingProduct.title.trim(),
         description: editingProduct.description?.trim() ?? "",
@@ -110,31 +128,35 @@ export default function ManageProductsPage() {
       setLoading(false);
     }
   };
-
+   // Open edit modal with selected product
   const openModal = (product: Product) => {
+
+    // copy product to editing state
     setEditingProduct({ ...product });
     setError(null);
     setShowEditModal(true);
   };
-
+  // Close edit modal and reset state
   const closeModal = () => {
     setShowEditModal(false);
     setEditingProduct(null);
     setError(null);
   };
 
-  // ✅ FIXED handleChange with proper rating typing
+  // Handle form input changes in edit modal
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     if (!editingProduct) return;
 
     const { name, value, type } = e.target;
-
+     
+    // Check if the input name is for a rating field, then get the specific rating key (like 'rate' or 'count') and
     if (name.startsWith("rating.")) {
       const ratingKey = name.split(".")[1] as keyof NonNullable<Product["rating"]>;
       let parsedValue: number = 0;
 
+      // If input type is number, parse the value as an integer for 'count' or as a float for 'rate'; default to 0 if parsing fails
       if (type === "number") {
         parsedValue =
           ratingKey === "count"
@@ -142,13 +164,13 @@ export default function ManageProductsPage() {
             : parseFloat(value) || 0;
       }
 
-      // Clamp values
+      // Keep 'rate' between 0 and 5; ensure 'count' is at least 0 (no negative values)
       if (ratingKey === "rate") {
         parsedValue = Math.min(5, Math.max(0, parsedValue));
       } else if (ratingKey === "count") {
         parsedValue = Math.max(0, parsedValue);
       }
-
+     // Update rating with new value for ratingKey
       setEditingProduct((prev) => ({
         ...prev!,
         rating: {
@@ -159,23 +181,23 @@ export default function ManageProductsPage() {
 
       return;
     }
-
+   // For normal fields, convert number inputs to numbers and keep text as is
     let newValue: string | number = value;
 
     if (type === "number") {
       newValue = Math.max(0, parseFloat(value) || 0);
     }
-
+   // Update product field with new value
     setEditingProduct((prev) => ({
       ...prev!,
       [name]: newValue,
     }));
   };
-
+   // UI for the page
   return (
     <div className="container mt-5">
       <h2 className="mb-4 text-center">Manage Products</h2>
-
+        {/* Show error alert if any error */}
       {error && (
         <Alert
           variant="danger"
@@ -186,15 +208,17 @@ export default function ManageProductsPage() {
           {error}
         </Alert>
       )}
-
+     {/* Show loading spinner if loading and no products yet */}
       {loading && !products.length ? (
         <div className="d-flex justify-content-center my-5">
           <Spinner animation="border" role="status" />
         </div>
       ) : products.length === 0 ? (
+         // Show message if no products found
         <p className="text-center text-muted">No products found.</p>
       ) : (
         <>
+         {/* Table of products */}
           <div className="table-responsive">
             <table className="table table-bordered align-middle">
               <thead className="table-light">
@@ -238,6 +262,7 @@ export default function ManageProductsPage() {
                         : "N/A"}
                     </td>
                     <td>
+                      {/* Buttons for editing and deleting */}
                       <div className="d-flex flex-column gap-2">
                         <Button
                           variant="primary"
@@ -285,6 +310,7 @@ export default function ManageProductsPage() {
                             </div>
                           </>
                         ) : (
+                          // Show delete button normally
                           <Button
                             variant="outline-danger"
                             size="sm"
@@ -302,7 +328,7 @@ export default function ManageProductsPage() {
               </tbody>
             </table>
           </div>
-
+         {/* Pagination controls */}
           <div className="d-flex justify-content-center align-items-center gap-2 my-4 flex-wrap">
             <Button
               className="me-2"
@@ -328,7 +354,7 @@ export default function ManageProductsPage() {
           </div>
         </>
       )}
-
+    {/* Modal for editing product */}
       <Modal
         show={showEditModal}
         onHide={closeModal}

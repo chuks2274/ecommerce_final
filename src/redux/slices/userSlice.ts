@@ -11,9 +11,7 @@ import {
   setDoc,
   deleteDoc,
 } from "firebase/firestore"; // Import Firestore functions
-import { auth, db } from "../../firebase/firebase";
-
-        // <-- Use app here
+import { auth, db } from "../../firebase/firebase"; // Import Firebase authentication and Firestore database instances
 
 // Define the shape of user profile data
 interface ProfileData {

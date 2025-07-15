@@ -1,21 +1,29 @@
-import { useCallback, useMemo } from "react";
-import { FaStar } from "react-icons/fa"; // Only import FaStar
-import type { Product } from "../types";
-import { useNavigate } from "react-router-dom";
-import "./components.css";
+import { useCallback, useMemo } from "react";  // Import React hooks for optimization
+import { FaStar } from "react-icons/fa";  // Import star icon for rating display
+import type { Product } from "../types";  // Import Product type for TypeScript
+import { useNavigate } from "react-router-dom";  // Import navigation hook for page changes
+import "./components.css";// Import styles for the component
 
+// Props for ProductCard: product data, add-to-cart handler, optional disable flag, and isLoggedIn flag
 interface Props {
   product: Product;
   onAddToCart: (product: Product) => void;
   disabled?: boolean;
+  isLoggedIn?: boolean;   
 }
 
+// Helper function to capitalize first letter of category string
 const capitalizeCategory = (category: string) =>
   category.charAt(0).toUpperCase() + category.slice(1);
 
-export default function ProductCard({ product, onAddToCart, disabled = false }: Props) {
+// Define and export the ProductCard component, taking product data, an add-to-cart handler, an optional disabled flag, and login status
+export default function ProductCard({ product, onAddToCart, disabled = false, isLoggedIn = false }: Props) {
+
+
+  // Function to programmatically change routes  
   const navigate = useNavigate();
 
+  // Destructure product fields with defaults if missing
   const {
     id = "",
     title = "No title",
@@ -26,6 +34,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
     category = "",
   } = product || {};
 
+  // Create an array of 5 stars, filled or empty depending on rating
   const stars = useMemo(() => {
     const filledStars = Math.round(rating?.rate || 0);
     return Array(5)
@@ -43,13 +52,15 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
           />
         )
       );
-  }, [rating?.rate]);
+  }, [rating?.rate]); // Run when product's rating changes
 
+   // Navigate to reviews page when user clicks "View Review"
   const handleViewReviews = useCallback(() => {
     if (!id) return;
     navigate(`/reviews/${id}`);
-  }, [id, navigate]);
+  }, [id, navigate]);  // Run when id or navigate changes
 
+  // Call onAddToCart function safely when user clicks "Add to Cart"
   const handleAddToCart = useCallback(() => {
     if (disabled || !product) return;
     try {
@@ -58,10 +69,11 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
       console.error("Error adding product to cart:", err);
       alert("Failed to add product to cart. Please try again.");
     }
-  }, [disabled, onAddToCart, product]);
+  }, [disabled, onAddToCart, product]); // Run when disabled flag, product, or add-to-cart function changes
 
   return (
     <div className="card h-100 product-card shadow-sm text-center p-2">
+       {/* Show product image if available, else show placeholder */}
       {image ? (
         <img
           src={image}
@@ -81,7 +93,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
           No Image
         </div>
       )}
-
+       {/* Card content with title, price, category, description and rating */}
       <div className="card-body d-flex flex-column justify-content-between">
         <div>
           <h6 className="card-title fw-semibold" title={title}>
@@ -92,6 +104,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
           <p className="card-text text-muted small" title={description}>
             {description || "No description available."}
           </p>
+           {/* Rating stars and count */}
           <div
             className="d-flex justify-content-center align-items-center mt-2"
             aria-label={`Rating: ${rating.rate} out of 5 stars based on ${rating.count} reviews`}
@@ -104,7 +117,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
             </small>
           </div>
         </div>
-
+       {/* Buttons for Add to Cart and View Review */}
         <div className="mt-3 text-center">
           <button
             className="btn btn-outline-primary btn-sm rounded-pill custom-hover"
@@ -117,14 +130,20 @@ export default function ProductCard({ product, onAddToCart, disabled = false }: 
             Add to Cart
           </button>
           <div className="mt-2">
-            <button
-              type="button"
-              onClick={handleViewReviews}
-              className="btn btn-link p-0 view-review-link"
-              aria-label={`View reviews for ${title}`}
-            >
-              View Review
-            </button>
+            {/* Show View Review only if user is logged in */}
+            {isLoggedIn ? (
+              <button
+                type="button"
+                onClick={handleViewReviews}
+                className="btn btn-link p-0 view-review-link"
+                aria-label={`View reviews for ${title}`}
+              >
+                View Review
+              </button>
+            ) : (
+              // Public users do not see View Review link at all
+              null
+            )}
           </div>
         </div>
       </div>

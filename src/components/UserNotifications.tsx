@@ -17,6 +17,7 @@ import "./components.css"; // Import CSS styles for components
 
 // Defines the UserNotifications component
 export default function UserNotifications() {
+  
   // Local states: notifications list, error message, and current pagination page
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [error, setError] = useState<string | null>(null);

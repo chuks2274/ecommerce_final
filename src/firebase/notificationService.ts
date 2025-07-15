@@ -83,8 +83,6 @@ export async function sendNotification(
       createdAt: Timestamp.now(),
     });
 
-    // Log a success message with the user ID and the message sent
-    console.log(`✅ Notification sent to ${user.uid}: ${message}`);
 
     // Return the ID of the new notification document
     return docRef.id;

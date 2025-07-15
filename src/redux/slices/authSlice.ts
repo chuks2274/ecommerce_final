@@ -6,13 +6,20 @@ import {
 import { signOut } from "firebase/auth"; // Import Firebase Auth function to sign out a user
 import { auth, db } from "../../firebase/firebase"; // Import configured Firebase Auth and Firestore database instances
 import { doc, getDoc } from "firebase/firestore"; // Import Firestore functions to reference a document (doc) and fetch its data (getDoc)
-import type { User } from "firebase/auth"; // Import the User type from Firebase Auth for TypeScript typing
+import type { User as FirebaseUser } from "firebase/auth"; // Import the User type from Firebase Auth for TypeScript typing
 
 // Define a user model that includes role info (admin or user)
-export interface UserWithRole {
+export interface User {
   uid: string;
   email: string | null;
-  name?: string | null;
+  name?: string;
+  role?: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+// Define a user model that includes role info (admin or user)
+export interface UserWithRole extends User {
   role: "admin" | "user";
 }
 
@@ -30,51 +37,75 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Async thunk to log out user from Firebase Auth
-export const logoutUser = createAsyncThunk("auth/logout", async () => {
-  await signOut(auth); // Calls Firebase signOut function
+// Updated Async thunk to log out user with try/catch and logging
+export const logoutUser = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
+  try {
+    console.log("Signing out Firebase user...");
+    await signOut(auth);
+    console.log("Sign-out successful, dispatching clearAuth");
+    thunkAPI.dispatch(clearAuth());
+  } catch (error) {
+    console.error("Logout error:", error);
+    throw error;  
+  }
 });
 
 // Async thunk to fetch user data and role from Firestore
 export const fetchAndSetUser = createAsyncThunk<
-  UserWithRole | null,
-  User | null,
-  { rejectValue: string }
->("auth/fetchAndSetUser", async (firebaseUser, thunkAPI) => {
-  if (!firebaseUser) return null; // If no user, return null
+  UserWithRole | null,       
+  FirebaseUser | null,       
+  { rejectValue: string }   
+>(
+  "auth/fetchAndSetUser",
+  async (firebaseUser, thunkAPI) => {
+    if (!firebaseUser) return null;  
 
-  try {
-    // Reference Firestore doc for this user by UID
-    const userDocRef = doc(db, "users", firebaseUser.uid);
+    try {
+      // Reference Firestore doc for this user by UID
+      const userDocRef = doc(db, "users", firebaseUser.uid);
 
-    // Get the user document snapshot
-    const userDocSnap = await getDoc(userDocRef);
+      // Get the user document snapshot
+      const userDocSnap = await getDoc(userDocRef);
 
-    let role: UserWithRole["role"] = "user"; // Default role is 'user'
+      let role: UserWithRole["role"] = "user"; // Default role is 'user'
+      let name: string | undefined = firebaseUser.displayName ?? undefined;
+      let createdAt: string | null = null;
+      let updatedAt: string | null = null;
 
-    if (userDocSnap.exists()) {
-      // Get user data from Firestore doc
-      const userData = userDocSnap.data();
+      if (userDocSnap.exists()) {
+        // Get user data from Firestore doc
+        const userData = userDocSnap.data();
 
-      // Check if role is valid and set it
-      if (userData.role === "admin" || userData.role === "user") {
-        role = userData.role;
+        // Check if role is valid and set it
+        if (userData.role === "admin" || userData.role === "user") {
+          role = userData.role;
+        }
+
+        // Check optional fields
+        if (userData.name) name = userData.name;
+        if (userData.createdAt?.toDate)
+          createdAt = userData.createdAt.toDate().toISOString();
+        if (userData.updatedAt?.toDate)
+          updatedAt = userData.updatedAt.toDate().toISOString();
       }
-    }
 
-    // Return user info with role
-    return {
-      uid: firebaseUser.uid,
-      email: firebaseUser.email,
-      name: firebaseUser.displayName ?? null,
-      role,
-    };
-  } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Failed to fetch user data";
-    return thunkAPI.rejectWithValue(message);
+      // Return user info with role and extra fields
+      return {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name,
+        role,
+        createdAt,
+        updatedAt,
+      };
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch user data";
+      // Return rejected action with error message
+      return thunkAPI.rejectWithValue(message);
+    }
   }
-});
+);
 
 // Create the Redux slice for auth management
 const authSlice = createSlice({
@@ -84,6 +115,12 @@ const authSlice = createSlice({
     // Reducer to set user info in state
     setUser: (state, action: PayloadAction<UserWithRole | null>) => {
       state.user = action.payload;
+    },
+    // Reducer to update partial user data in state (for Firestore listener)
+    updateUserData: (state, action: PayloadAction<Partial<UserWithRole>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
     },
     // Reducer to set loading status
     setLoading: (state, action: PayloadAction<boolean>) => {
@@ -107,9 +144,8 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      // When logoutUser completes (fulfilled), clear user and loading
+      // When logoutUser completes (fulfilled), clear loading (user cleared by clearAuth already)
       .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
         state.loading = false;
       })
       // When logoutUser fails (rejected), set error and stop loading
@@ -129,14 +165,17 @@ const authSlice = createSlice({
       })
       // When fetchAndSetUser fails, set error message and stop loading
       .addCase(fetchAndSetUser.rejected, (state, action) => {
-        state.error = action.payload ?? "Failed to fetch user data";
+        state.error =
+          typeof action.payload === "string"
+            ? action.payload
+            : "Failed to fetch user data";
         state.loading = false;
       });
   },
 });
 
 // Export action creators from auth slice
-export const { setUser, setLoading, setError, clearAuth } = authSlice.actions;
+export const { setUser, updateUserData, setLoading, setError, clearAuth } = authSlice.actions;
 
 // Export the auth reducer for Redux store
 export default authSlice.reducer;

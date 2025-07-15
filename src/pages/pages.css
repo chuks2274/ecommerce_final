@@ -347,3 +347,7 @@ button.btn-outline-primary {
   max-width: 100%;
   height: auto;
 }
+ /* Ensure the modal content has a consistent background color */
+.custom-modal-content{
+  background-color: #A3C1AD !important;
+}

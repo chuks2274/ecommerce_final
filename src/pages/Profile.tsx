@@ -8,6 +8,8 @@ import {
 } from "../redux/slices/userSlice"; // Import actions from the userSlice to manage user profile data
 import { useAuth } from "../hooks/useAuth"; // Import custom hook to get the current logged-in Firebase user
 import { useNavigate } from "react-router-dom"; // Import hook to programmatically navigate to another route
+import { db } from "../firebase/firebase"; // Import Firestore instance
+import { doc, onSnapshot } from "firebase/firestore"; // Firestore functions from modular SDK
 
 // Component for showing and editing the user's profile
 export default function Profile() {
@@ -40,6 +42,34 @@ export default function Profile() {
       dispatch(fetchUserProfile(currentUser.uid));
     }
   }, [dispatch, currentUser]); // Run when dispatch or currentUser changes
+
+  // Firestore real-time listener for user document
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    // Create a document reference to the user document
+    const docRef = doc(db, "users", currentUser.uid);
+
+    // Subscribe to realtime updates of the user document
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const userData = snapshot.data();
+        setForm({
+          name: userData?.name || "",
+          address: userData?.address || "",
+        });
+      } else {
+        setForm({ name: "", address: "" });
+      }
+    },
+    (error) => {
+      // Firestore listener error callback
+      console.error("Firestore listener error:", error);
+    });
+
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
+  }, [currentUser?.uid]);
 
   // When profile data arrives, fill the form fields
   useEffect(() => {
@@ -160,8 +190,8 @@ export default function Profile() {
           {/* Profile form for name and address */}
           <form
             onSubmit={(e) => {
-              e.preventDefault(); 
-              handleUpdate();      
+              e.preventDefault();
+              handleUpdate();
             }}
             noValidate
           >

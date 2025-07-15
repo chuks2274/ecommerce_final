@@ -32,6 +32,14 @@ Automatically saves the cart to the backend (e.g., Firestore) whenever the user 
 Does nothing if the user is not logged in.
 Works silently in the background — no visible UI is rendered.
 
+## CartItemCard.tsx
+### What This File Does
+Shows product image and title
+Displays price and quantity
+Buttons to increase or decrease quantity
+Button to remove the item from the cart
+Shows total price (price × quantity)
+
 ## CategorySearch.tsx
 ### What This File Does
 Fetches product categories from Firebase on initial render.

@@ -52,12 +52,21 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Step 3: Deploy the project to Vercel using the token stored in secrets
-      - name: Deploy to Vercel
+      # Step 3: Pull Vercel environment settings (recommended for monorepos or custom config)
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Step 4: Build the project artifacts for production
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Step 5: Deploy the prebuilt project to Vercel and capture the URL
+      - name: Deploy Project Artifacts to Vercel
+        id: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          echo "Deploying to Vercel..."
-          DEPLOY_URL=$(vercel --prod --token=$VERCEL_TOKEN --confirm)
-          echo "Deployment complete:"
-          echo "URL: $DEPLOY_URL"
+        run: echo "url=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)" >> $GITHUB_OUTPUT
+
+      # Step 6: Show the deployment URL in GitHub Actions logs
+      - name: Show Deployment URL
+        run: 'echo "Deployment URL: ${{ steps.deploy.outputs.url }}"'

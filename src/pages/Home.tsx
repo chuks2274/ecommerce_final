@@ -18,7 +18,7 @@ export default function Home() {
 
   // Get the current logged-in user from Redux store
   const user = useAppSelector((state) => state.auth.user);
-
+  const isLoggedIn = !!user;
   // Get the current cart items from Redux store
   const cartItems = useAppSelector((state) => state.cart.items);
 
@@ -86,37 +86,40 @@ export default function Home() {
     ? products.filter((product) => product.category === categoryFilter)
     : products;
 
-  // When user clicks "Add to Cart"
-  const handleAddToCart = (product: Product) => {
-    // If user is not logged in, show warning
-    if (!user) {
-      toast.warning("You must be logged in to add items to your cart.");
-      return;
-    }
+  // Memoized handleAddToCart function
+  const handleAddToCart = useCallback(
+    (product: Product) => {
+      // If user is not logged in, show warning
+      if (!user) {
+        toast.warning("You must be logged in to add items to your cart.");
+        return;
+      }
 
-    // Check if product is already in the cart
-    const alreadyInCart = cartItems.some((item) => item.id === product.id);
-    if (alreadyInCart) {
-      toast.info("This product is already in your cart.");
-      return;
-    }
+      // Check if product is already in the cart
+      const alreadyInCart = cartItems.some((item) => item.id === product.id);
+      if (alreadyInCart) {
+        toast.info("This product is already in your cart.");
+        return;
+      }
 
-    // Build the cart item to add
-    const cartItem: CartItem = {
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      image: product.image,
-      quantity: 1,
-      category: product.category,
-      rating: product.rating?.rate ?? 0,
-    };
+      // Build the cart item to add
+      const cartItem: CartItem = {
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        image: product.image,
+        quantity: 1,
+        category: product.category,
+        rating: product.rating?.rate ?? 0,
+      };
 
-    // Dispatch the action to add item to cart
-    dispatch(addToCart(cartItem));
+      // Dispatch the action to add item to cart
+      dispatch(addToCart(cartItem));
 
-    toast.success("Product added to cart!");
-  };
+      toast.success("Product added to cart!");
+    },
+    [user, cartItems, dispatch]
+  );
 
   return (
     <div className="container-fluid mt-4 px-3 px-md-4 pb-5">
@@ -159,6 +162,7 @@ export default function Home() {
               product={product}
               onAddToCart={handleAddToCart}
               disabled={!user}
+              isLoggedIn={isLoggedIn}
             />
           </div>
         ))}

@@ -1,7 +1,6 @@
-// src/__mocks__/firebase.ts
+//Mock Firebase auth and Firestore methods for testing without connecting to the real Firebase services
 export const auth = {
   currentUser: null,
-  // add mocked auth methods if needed
 };
 
 export const db = {

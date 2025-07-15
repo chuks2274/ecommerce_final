@@ -3,28 +3,45 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependency directories
+node_modules/
 
-# Editor directories and files
-.vscode/*
+# Build output
+dist/
+dist-ssr/
+
+# Local env files (usually contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Editor folders and files
+.vscode/
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment files
-.env
+# MacOS files
+.DS_Store
 
-# Ignore Firebase env config
+# TypeScript compiled JavaScript and source maps
+src/**/*.js
+src/**/*.js.map
+
+# Firebase config - ignore real config with secrets, keep mocks outside ignored folders
 src/config/env.ts
+
+# Jest cache and coverage
+jest.config.ts
+coverage/
+
+# Optional: Ignore lockfiles if using different package managers (uncomment if applicable)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

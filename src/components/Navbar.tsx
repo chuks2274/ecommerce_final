@@ -14,7 +14,6 @@ interface NavbarProps {
 
 // Main component definition
 export default function Navbar({ unreadCount }: NavbarProps) {
-
   // Get current user info from Redux store
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -41,15 +40,16 @@ export default function Navbar({ unreadCount }: NavbarProps) {
 
   // Function to handle user logout
   const handleLogout = async () => {
-    setLogoutError("");  
+    setLogoutError("");
     try {
       // Dispatch logout and unwrap promise
-      await dispatch(logoutUser()).unwrap();  
-      navigate("/login");  
-      closeCollapse(); 
+      await dispatch(logoutUser()).unwrap();
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      setLogoutError("Logout failed. Please try again.");  
+      setLogoutError("Logout failed. Please try again.");
+    } finally {
+      closeCollapse(); // Always close navbar after logout
     }
   };
 
@@ -168,7 +168,7 @@ export default function Navbar({ unreadCount }: NavbarProps) {
                 <Link
                   to="/notifications"
                   className="nav-link nav-hover notification-link"
-                  aria-label={`Notifications (${unreadCount} unread)`}
+                  aria-label={`Notifications (${unreadCount} unread)`} 
                   onClick={handleNavLinkClick}
                 >
                   <div className="position-relative d-inline-flex align-items-center">
@@ -230,10 +230,7 @@ export default function Navbar({ unreadCount }: NavbarProps) {
                   Hello, {user.name || "Admin"} 👋
                 </span>
                 <button
-                  onClick={() => {
-                    handleLogout();
-                    closeCollapse();
-                  }}
+                  onClick={handleLogout}
                   className="btn btn-outline-danger btn-sm mt-2 mt-lg-0 ms-lg-2"
                   style={{
                     maxWidth: "100px",

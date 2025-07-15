@@ -1,165 +1,159 @@
-import {
-  createSlice,
-  createAsyncThunk,
-  type PayloadAction,
-} from "@reduxjs/toolkit"; // Import Redux Toolkit tools for creating slices, async actions, and typed action payloads
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Import Firestore functions to reference, read, and write documents
-import { db } from "../../firebase/firebase"; // Import configured Firestore database instance
-import type { Product } from "../../types"; // Import TypeScript type definition for Product objects
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit"; // Import functions from Redux Toolkit to create slice, async actions, and define action types
+import { doc, setDoc, getDoc } from "firebase/firestore"; // Import Firestore functions for reading and writing documents
+import { db } from "../../firebase/firebase"; // Import the Firebase Firestore instance
 
-// Define CartItem type based on Product but override rating as number (not object)
-export interface CartItem extends Omit<Product, "rating"> {
+// Define the shape of a single cart item
+export interface CartItem {
+  id: string;
+  title: string;
+  price: number;
   quantity: number;
-  rating: number;
+  image: string;
+  category?: string;
+  rating?: number;
 }
-
-// Define state shape for cart slice
+// Define the shape of the cart slice state
 interface CartState {
   items: CartItem[];
-  loading: boolean;
+  status: "idle" | "loading" | "failed";
   error: string | null;
 }
-
-// Load cart items from localStorage if available
-const storedCart = localStorage.getItem("cart");
+// Initial state of the cart
 const initialState: CartState = {
-  // Use saved cart or start empty
-  items: storedCart ? JSON.parse(storedCart) : [],
-  loading: false,
+  items: [],
+  status: "idle",
   error: null,
 };
 
-// Async thunk to fetch cart data from Firestore by user ID
-export const fetchCart = createAsyncThunk<
-  CartItem[],
-  string,
-  { rejectValue: string }
->("cart/fetchCart", async (userId, { rejectWithValue }) => {
-  try {
-    // Reference to user's cart doc
-    const docRef = doc(db, "carts", userId);
-    const snapshot = await getDoc(docRef);
-    if (snapshot.exists()) {
-      // Extract cart items
-      const items = snapshot.data().items as CartItem[];
-      localStorage.setItem("cart", JSON.stringify(items));
-      return items; // Return cart items
+// Fetch cart from Firestore for a given user
+export const fetchCart = createAsyncThunk<CartItem[], string>(
+  "cart/fetchCart",
+  async (userId, { rejectWithValue }) => {
+    try {
+      // Get document reference for user cart
+      const cartRef = doc(db, "carts", userId);
+      // Try to fetch the document
+      const snapshot = await getDoc(cartRef);
+      if (snapshot.exists()) {
+         // Return cart items if found
+        return snapshot.data().items as CartItem[];
+      }
+      return [];
+    } catch {
+      return rejectWithValue("Failed to fetch cart");
     }
-    return []; // Return empty if no cart found
-  } catch {
-    return rejectWithValue("Failed to load cart");
   }
-});
+);
 
-// Async thunk to save cart data to Firestore for a given user ID
+// Save cart to Firestore for a given user
 export const saveCart = createAsyncThunk<
   CartItem[],
-  { userId: string; items: CartItem[] },
-  { rejectValue: string }
->("cart/saveCart", async ({ userId, items }, { rejectWithValue }) => {
-  try {
-    // Reference to user's cart doc
-    const cartRef = doc(db, "carts", userId);
-    await setDoc(cartRef, { items });
-    localStorage.setItem("cart", JSON.stringify(items));
-    return items; // Return saved items
-  } catch {
-    return rejectWithValue("Failed to save cart");
+  { userId: string; items: CartItem[] }
+>(
+  "cart/saveCart",
+  async ({ userId, items }, { rejectWithValue }) => {
+    try {
+      if (!userId) throw new Error("No user ID provided");
+      // Get document reference for user cart
+      const cartRef = doc(db, "carts", userId);
+      // Save items to Firestore
+      await setDoc(cartRef, { items });
+      return items; // Return saved items
+    } catch {
+      return rejectWithValue("Failed to save cart");
+    }
   }
-});
-
-// Create Redux slice for cart state and reducers
+);
+// Create a Redux slice for cart
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Add item to cart or increase quantity if already present
+    // Set cart items directly (used to replace entire cart)
+    setCartItems(state, action: PayloadAction<CartItem[]>) {
+      state.items = action.payload;
+    },
+    // Add item to cart, or increase quantity if it already exists
     addToCart(state, action: PayloadAction<CartItem>) {
-      const existing = state.items.find(
-        (item) => item.id === action.payload.id
-      );
+      const existing = state.items.find((item) => item.id === action.payload.id);
       if (existing) {
         existing.quantity += action.payload.quantity;
       } else {
-        state.items.push({ ...action.payload });
+        state.items.push(action.payload);
       }
-      localStorage.setItem("cart", JSON.stringify(state.items));
-    },
-    // Remove item from cart by ID
-    removeFromCart(state, action: PayloadAction<string>) {
-      state.items = state.items.filter((item) => item.id !== action.payload);
-      localStorage.setItem("cart", JSON.stringify(state.items));
-    },
-    // Clear all items from cart
-    clearCart(state) {
-      state.items = [];
-      localStorage.removeItem("cart");
-    },
-    // Update quantity of a specific cart item by ID
-    updateQuantity(
-      state,
-      action: PayloadAction<{ id: string; quantity: number }>
-    ) {
-      const item = state.items.find((i) => i.id === action.payload.id);
-      if (item) {
-        item.quantity = action.payload.quantity;
-        localStorage.setItem("cart", JSON.stringify(state.items));
-      }
-    },
-    // Replace the entire cart items with a new list
-    setCart(state, action: PayloadAction<CartItem[]>) {
-      state.items = action.payload;
-      localStorage.setItem("cart", JSON.stringify(state.items));
     },
     // Increase quantity of a cart item by 1
     increaseQuantity(state, action: PayloadAction<string>) {
       const item = state.items.find((i) => i.id === action.payload);
-      if (item) {
-        item.quantity += 1;
-        localStorage.setItem("cart", JSON.stringify(state.items));
-      }
+      if (item) item.quantity++;
     },
-    // Decrease quantity of a cart item by 1 but not below 1
+    // Decrease quantity of a cart item by 1 (but not below 1)
     decreaseQuantity(state, action: PayloadAction<string>) {
       const item = state.items.find((i) => i.id === action.payload);
-      if (item && item.quantity > 1) {
-        item.quantity -= 1;
-        localStorage.setItem("cart", JSON.stringify(state.items));
-      }
+      if (item && item.quantity > 1) item.quantity--;
+    },
+    // Remove an item completely from the cart
+    removeFromCart(state, action: PayloadAction<string>) {
+      state.items = state.items.filter((i) => i.id !== action.payload);
+    },
+     // Clear all items from the cart
+    clearCart(state) {
+      state.items = [];
     },
   },
-  // Handle async thunks states for fetchCart and saveCart
+  // Handle extra reducers for async actions
   extraReducers: (builder) => {
     builder
+    // When fetchCart starts
       .addCase(fetchCart.pending, (state) => {
-        state.loading = true;
+        state.status = "loading";
         state.error = null;
       })
+      // When fetchCart succeeds
       .addCase(fetchCart.fulfilled, (state, action) => {
-        state.items = action.payload;
-        state.loading = false;
+        const isDifferent =
+          JSON.stringify(state.items) !== JSON.stringify(action.payload);
+        if (isDifferent) {
+           // Update cart if data has changed
+          state.items = action.payload;
+        }
+        state.status = "idle";
       })
+      // When fetchCart fails
       .addCase(fetchCart.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload ?? "Error loading cart";
+        state.status = "failed";
+        state.error = action.payload as string;
       })
+      // When saveCart starts
+      .addCase(saveCart.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+       // When saveCart succeeds
+      .addCase(saveCart.fulfilled, (state, action) => {
+        const isDifferent =
+          JSON.stringify(state.items) !== JSON.stringify(action.payload);
+        if (isDifferent) {
+          // Update cart if saved data is different
+          state.items = action.payload;
+        }
+        state.status = "idle";
+      })
+       // When saveCart fails
       .addCase(saveCart.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload ?? "Error saving cart";
+        state.status = "failed";
+        state.error = action.payload as string;
       });
   },
 });
-
-// Export action creators to use in components
+// Export actions so they can be used in components
 export const {
+  setCartItems,
   addToCart,
-  removeFromCart,
-  clearCart,
-  updateQuantity,
-  setCart,
   increaseQuantity,
   decreaseQuantity,
+  removeFromCart,
+  clearCart,
 } = cartSlice.actions;
-
-// Export the reducer to configure Redux store
+// Export reducer so it can be added to the Redux store
 export default cartSlice.reducer;

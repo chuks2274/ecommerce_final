@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"; // Import React hooks: useEffect, useState, useRef
+ import { useEffect, useState, useRef } from "react"; // Import React hooks: useEffect, useState, useRef
 import { collection, query, where, onSnapshot } from "firebase/firestore"; // Import Firestore functions for queries and realtime updates
 import { db } from "../firebase/firebase"; // Import initialized Firestore database instance
 import { useAuth } from "./useAuth"; // Import custom hook to get current authenticated user

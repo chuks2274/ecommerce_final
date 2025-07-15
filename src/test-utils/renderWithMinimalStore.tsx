@@ -1,19 +1,19 @@
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren } from "react"; // Import React and types for children props
 import {
   configureStore,
   createSlice,
   PayloadAction,
   combineReducers,
-} from "@reduxjs/toolkit";
-import { Provider } from "react-redux";
-import { render } from "@testing-library/react";
+} from "@reduxjs/toolkit"; // Import Redux Toolkit helpers
+import { Provider } from "react-redux"; // Import React-Redux provider to give store to app
+import { render } from "@testing-library/react";  // Import testing library render function
 import {
   TypedUseSelectorHook,
   useDispatch,
   useSelector,
-} from "react-redux";
+} from "react-redux"; // Import typed Redux hooks for dispatch and selector
 
-// Types
+// Define the shape of a cart item
 interface CartItem {
   id: string;
   title: string;
@@ -22,16 +22,18 @@ interface CartItem {
   quantity: number;
 }
 
+// Define the shape of a user object
 interface User {
   uid: string;
   email?: string;
 }
 
-// Cart Slice
+// Initial state for the cart slice
 const cartInitialState = {
-  items: [] as CartItem[],
+  items: [] as CartItem[], // Cart starts empty
 };
 
+// Create the cart slice with reducers to manage cart items
 const cartSlice = createSlice({
   name: "cart",
   initialState: cartInitialState,
@@ -50,13 +52,15 @@ const cartSlice = createSlice({
   },
 });
 
-// Auth Slice
+// Initial state for authentication slice
 const authInitialState = {
   user: null as User | null,
   loading: false,
   error: null as string | null,
 };
 
+
+// Create auth slice with reducer to set user info
 const authSlice = createSlice({
   name: "auth",
   initialState: authInitialState,
@@ -67,15 +71,15 @@ const authSlice = createSlice({
   },
 });
 
-// Combine Reducers
+// Combine cart and auth reducers into one root reducer
 const rootReducer = combineReducers({
   cart: cartSlice.reducer,
   auth: authSlice.reducer,
 });
-
+// Define the RootState type from the root reducer output
 export type RootState = ReturnType<typeof rootReducer>;
 
-// Configure store
+// Configure Redux store with optional initial state for testing or persistence
 export const configureAppStore = (preloadedState?: Partial<RootState>) =>
   configureStore({
     reducer: rootReducer,
@@ -90,15 +94,17 @@ export const configureAppStore = (preloadedState?: Partial<RootState>) =>
       },
     },
   });
-
+ // Types for store and dispatch, used for typing Redux hooks
 export type AppStore = ReturnType<typeof configureAppStore>;
 export type AppDispatch = AppStore["dispatch"];
 
-// Typed hooks
+// Typed hook to get typed dispatch function
 export const useAppDispatch = () => useDispatch<AppDispatch>();
+
+// Typed hook to select typed state slices
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-// Render util
+// Helper function to render React components with Redux provider and store, useful for tests
 export function renderWithMinimalStore(
   ui: React.ReactElement,
   {
@@ -110,14 +116,15 @@ export function renderWithMinimalStore(
     store?: AppStore;
   } = {}
 ) {
+  // Wrapper component to provide Redux store to children
   function Wrapper({ children }: PropsWithChildren) {
     return <Provider store={store}>{children}</Provider>;
   }
-
+ // Render UI with wrapper and other options
   const result = render(ui, { wrapper: Wrapper, ...renderOptions });
 
   return {
-    ...result,
-    store,
+    ...result, // Return render results 
+    store, // Return store instance for access in tests
   };
 }

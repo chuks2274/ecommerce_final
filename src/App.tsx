@@ -1,9 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; // Import React Router components for routing and navigation
-// Import route guards for private and admin routes
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";// Import routing components from React Router
+import { useUnreadNotifications } from "./hooks/useUnreadNotifications"; // Import custom hook to get unread notifications
+import useFirebaseAuthListener from "./hooks/useFirebaseAuthListener";  // Import Firebase auth listener hook to sync login/logout
+// Import route guards for protecting pages
 import PrivateRoute from "./routes/PrivateRoute";
 import AdminRoute from "./routes/AdminRoute";
-// Import main components and pages used in the app
+// Import shared layout components
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import CartAutoSave from "./components/CartAutoSave";  // Import Auto-saves cart to Firestore
+// Import public and protected pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -17,36 +22,30 @@ import AddProductPage from "./pages/admin/AddProductPage";
 import OrderDetail from "./components/OrderDetail";
 import OrderSuccess from "./pages/OrderSuccess";
 import ReviewPage from "./pages/ReviewPage";
-import Footer from "./components/Footer";
-import { AdminOrderManagement } from "./pages/admin/AdminOrderManagement";
 import UserNotificationPage from "./pages/UserNotificationPage";
 import ForgotPasswordEmail from "./pages/ForgotPasswordEmail";
-// Import custom hooks and components for app-wide features
-import { useUnreadNotifications } from "./hooks/useUnreadNotifications";
-import AuthListener from "./components/AuthListener";
-import CartAutoSave from "./components/CartAutoSave";
-import "./App.css"; // Import global CSS styles for the app
+import { AdminOrderManagement } from "./pages/admin/AdminOrderManagement";
+import "./App.css"; // Import global styles
 
-// Main App component that defines routing and layout
+// Main App component
 function App() {
-  // Get the number of unread notifications for the user
+  
+  // Start listening for Firebase auth changes (login/logout)
+  useFirebaseAuthListener();
+
+  // Get number of unread notifications
   const unreadCount = useUnreadNotifications();
 
   return (
-    // Router enables client-side routing
     <Router>
       <div className="app-container d-flex flex-column min-vh-100">
-        {/* Component to listen to Firebase authentication changes */}
-        <AuthListener />
-
-        {/* Component to auto-save cart changes to Firestore */}
+        {/* Auto-save cart to Firestore on changes */}
         <CartAutoSave />
 
-        {/* Navbar shows at the top with unread notification count */}
+        {/* Global navigation bar */}
         <Navbar unreadCount={unreadCount} />
 
         <main className="flex-grow-1 main-content" style={{ paddingTop: "70px" }}>
-          {/* Define all routes in the app */}
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
@@ -55,7 +54,7 @@ function App() {
             <Route path="/forgot-password-email" element={<ForgotPasswordEmail />} />
             <Route path="/reviews/:productId" element={<ReviewPage />} />
 
-            {/* Protected routes that require user login */}
+            {/* Auth-protected routes */}
             <Route
               path="/cart"
               element={
@@ -88,7 +87,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-             
             <Route
               path="/order-success"
               element={
@@ -97,8 +95,6 @@ function App() {
                 </PrivateRoute>
               }
             />
-
-            {/* Other protected user routes */}
             <Route
               path="/notifications"
               element={
@@ -116,10 +112,8 @@ function App() {
               }
             />
 
-            {/* Redirect "/admin" to manage products page */}
+            {/* Admin redirects & protected routes */}
             <Route path="/admin" element={<Navigate to="/admin/manage-products" replace />} />
-
-            {/* Admin-only routes - require admin role */}
             <Route
               path="/admin/products"
               element={
@@ -155,12 +149,11 @@ function App() {
           </Routes>
         </main>
 
-        {/* Footer always at bottom of the page */}
+        {/* Footer always at the bottom */}
         <Footer />
       </div>
     </Router>
   );
 }
 
-// Export App as the default export of the module
 export default App;

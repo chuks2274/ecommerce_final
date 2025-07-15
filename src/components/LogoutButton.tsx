@@ -1,13 +1,17 @@
 import { useState } from "react"; // Import useState hook to manage local component state
-import { signOut } from "firebase/auth"; // Import Firebase's signOut function to log the user out
-import { auth } from "../firebase/firebase"; // Import the Firebase authentication instance
-import { useDispatch } from "react-redux"; // Import Redux's dispatch hook to send actions
-import { setUser } from "../redux/slices/authSlice"; // Import the setUser action to update the Redux store after logout
+import { useNavigate } from "react-router-dom"; // Import useNavigate to redirect after logout
+
+import { logoutUser } from "../redux/slices/authSlice"; // Import the logout thunk from Redux slice
+import { useAppDispatch } from "../redux/hooks"; // Import the typed dispatch hook
 
 // Define the LogoutButton component
 export default function LogoutButton() {
-  // Get the Redux dispatch function to send actions
-  const dispatch = useDispatch();
+
+  // Get the Redux dispatch function to send actions 
+  const dispatch = useAppDispatch();
+
+  // Hook to navigate programmatically
+  const navigate = useNavigate();
 
   // Local states for handling logout loading state and error message
   const [loading, setLoading] = useState(false);
@@ -15,16 +19,28 @@ export default function LogoutButton() {
 
   // Define the function to handle user logout
   const handleLogout = async () => {
-    setError(null);
-    setLoading(true);
+    setError(null);  
+    setLoading(true);  
 
     try {
-      // Call Firebase's signOut method
-      await signOut(auth);
-      dispatch(setUser(null));
+      // Use the Redux thunk which handles Firebase signOut and clears Redux user state
+      const resultAction = await dispatch(logoutUser());
+
+      if (logoutUser.rejected.match(resultAction)) {
+        // The thunk was rejected, handle the error here
+        const errorMessage =
+          resultAction.error?.message ?? "Failed to logout. Please try again.";
+        console.error("Logout failed:", errorMessage);
+        setError(errorMessage);
+      } else {
+        // Success - redirect after logout
+        navigate("/login", { replace: true }); // Use replace to avoid back navigation to protected pages
+      }
     } catch (err) {
-      console.error("Logout failed:", err);
-      setError("Failed to logout. Please try again.");
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to logout. Please try again.";
+      console.error("Logout failed:", errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
