@@ -1,4 +1,6 @@
 # E-commerce App Project
+## Live E-Commerce Application  
+[View the live site](https://ecommercefinal-ashy.vercel.app/)
 Note: Firestore security rules are crucial for properly using or testing this app. I’ve included the rules from lines 513 to 634—simply copy, paste, and publish them in your Firebase console to ensure secure and accurate functionality.
 
 Select Role During Registration

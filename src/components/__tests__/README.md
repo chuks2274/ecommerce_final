@@ -1,3 +1,6 @@
+# E-commerce Final Project
+## Live E-Commerce Application  
+[View the live site](https://ecommercefinal-ashy.vercel.app/)
 
 ## Testing Overview
 This project uses **Jest** and **React Testing Library** to test pages and components, including unit and integration tests.
@@ -35,13 +38,28 @@ These mocks ensure tests run quickly and reliably without requiring real Firebas
 This file defines the Redux store setup, slices, typed hooks, and a helper function for rendering React components with the Redux store in tests. It uses Redux Toolkit and React-Redux with TypeScript for type safety and maintainability.
 
 ## E-commerce Final Project
-This project is automatically deployed to [Vercel](https://vercel.com) using GitHub Actions.
+This project is automatically deployed to [Vercel](https://vercel.com) using GitHub Actions for continuous integration and deployment (CI/CD).
+
 ### Deployment Workflow
-On every push to the `main` branch:
-Runs tests and builds the project
-If successful, deploys to Vercel using the Vercel CLI
-### Secret Used
- `VERCEL_TOKEN` — stored securely in GitHub Actions Secrets
+On every push to the `main` branch, the following steps occur:
+Run tests and build the project.
+If tests and build succeed, deploy the latest build to Vercel using the Vercel CLI.
 
+### Deployment Details
+This project uses **two separate GitHub Actions workflows** for CI/CD:
 
- 
+ `ci-pipeline.yml`  
+Runs on **pushes and pull requests** to the `main` branch.  
+It installs dependencies and runs all tests to ensure code quality.
+
+`vercel-deploy.yml`  
+Runs on **pushes to the `main` or `master` branch**.  
+It builds the project and deploys it to Vercel for production hosting.
+
+### GitHub Secrets Required
+To enable the deployment workflows, the following secrets must be added securely in your GitHub repository settings:
+`VERCEL_TOKEN` — Your personal Vercel access token.
+`VERCEL_ORG_ID` — Your Vercel organization ID.
+`VERCEL_PROJECT_ID` — Your Vercel project ID.
+
+These secrets are used by GitHub Actions to authenticate and interact with your Vercel project during deployment.

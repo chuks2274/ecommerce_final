@@ -1,0 +1,38 @@
+# The name of this workflow that appears in GitHub Actions
+name: CI Pipeline    
+
+# Defines when this workflow should run
+on:                  
+  push:             # Run on code pushes
+    branches:
+      - main         
+  pull_request:      
+    branches:
+      - main         
+
+# The collection of jobs that this workflow will run
+jobs:                
+  test:   
+  # Use the latest Ubuntu environment to run this job           
+    runs-on: ubuntu-latest    
+
+     # Steps to perform inside this job
+    steps:      
+     # Step 1: Get a copy of your repo’s code     
+      - name: Checkout code          
+        uses: actions/checkout@v3
+
+        # Step 2: Install Node.js version 18
+      - name: Set up Node.js          
+        uses: actions/setup-node@v3
+        with:
+        # Specify Node.js version 18 to use
+          node-version: '18'          
+
+      # Step 3: Install npm packages needed for the project
+      - name: Install dependencies    
+        run: npm install
+
+        # Step 4: Run all your tests once  
+      - name: Run tests               
+        run: npm test -- --watchAll=false

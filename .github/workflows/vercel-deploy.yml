@@ -1,0 +1,43 @@
+# This is the name of the workflow that shows up in GitHub Actions
+name: Vercel Deployment    
+
+# Define environment variables to use throughout the workflow
+env:  
+                     
+ # Your Vercel organization ID, stored securely in GitHub secrets
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}  
+  # Your Vercel project ID, stored securely in GitHub secrets      
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}  
+
+# Specify when this workflow should run
+on:                        
+  push:   # Run this workflow on code pushes            
+    branches:
+      - main              
+      - master   
+
+ # Define the jobs to run as part of this workflow
+jobs:                      
+  Deploy-Production:       # Name of the deployment job
+    runs-on: ubuntu-latest # Use the latest Ubuntu environment to run the job
+
+     # Steps to execute in order during this job
+    steps: 
+        # Step 1: Get a fresh copy of the repository code               
+      - uses: actions/checkout@v2    
+
+       # Step 2: Install the Vercel command-line tool globally
+      - name: Install Vercel CLI     
+        run: npm install --global vercel@latest
+
+      # Step 3: Download project settings and environment variables from Vercel
+      - name: Pull Vercel Environment Information   
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+  
+         # Step 4: Build the project ready for production deployment
+      - name: Build Project Artifacts     
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+        # Step 5: Deploy the pre-built project to Vercel for production
+      - name: Deploy Project Artifacts to Vercel   
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
