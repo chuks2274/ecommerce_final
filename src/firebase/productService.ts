@@ -21,12 +21,12 @@ export interface ProductInput {
 // Function to add a new product document to the "products" collection
 export const addProduct = async (product: ProductInput) => {
   try {
-    // Add the product object to Firestore and get reference to new doc
+    // Add the product to the "products" collection and get a reference to the new document
     const docRef = await addDoc(collection(db, "products"), product);
 
     console.log("Product added with ID:", docRef.id);
 
-    // Return the new product's Firestore document ID
+    // Return the ID of the newly added product document
     return docRef.id;
   } catch (error) {
     console.error("Error adding product:", error);
@@ -34,8 +34,9 @@ export const addProduct = async (product: ProductInput) => {
   }
 };
 
-// Function to fetch all products from Firestore collection "products"
+// Fetch all product documents from the Firestore "products" collection
 export const fetchProducts = async () => {
+
   // Get all documents from the "products" collection
   const querySnapshot = await getDocs(collection(db, "products"));
 
@@ -46,15 +47,16 @@ export const fetchProducts = async () => {
   }));
 };
 
-// Function to fetch unique product categories in lowercase
+// Fetch unique product categories from Firestore, converted to lowercase
 export const fetchCategories = async (): Promise<string[]> => {
+
   // Get all products from Firestore
   const querySnapshot = await getDocs(collection(db, "products"));
 
   // Use a Set to store unique categories without duplicates
   const categorySet = new Set<string>();
 
-  // Loop through each product document
+  // Loop through each document and get its data
   querySnapshot.forEach((doc) => {
     const data = doc.data();
 
@@ -64,6 +66,6 @@ export const fetchCategories = async (): Promise<string[]> => {
     }
   });
 
-  // Convert the Set of unique categories back to an array and return it
+  // Convert the set of unique categories to an array and return it
   return Array.from(categorySet);
 };

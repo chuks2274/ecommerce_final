@@ -7,7 +7,7 @@ export async function sendNotification(
   status: "in process" | "delivery" | "refunded" | "cancelled" | "pending",
   estimatedDeliveryDate?: string
 ) {
-  // Get the Firebase Auth service
+  // Get the Firebase authentication instance
   const auth = getAuth();
 
   // Get the currently logged-in user
@@ -84,7 +84,7 @@ export async function sendNotification(
     });
 
 
-    // Return the ID of the new notification document
+    // Return the ID of the newly created notification document
     return docRef.id;
   } catch (error) {
     console.error("❌ Failed to send notification:", error);

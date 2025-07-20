@@ -14,7 +14,7 @@ export async function saveCartToFirestore(userId: string, items: CartItem[]) {
   }
 }
 
-// Get cart items for a user from Firestore, or return empty array if not found
+// Load cart items from Firestore for a given user ID and return them as a promise that resolves to an array of cart items
 export async function loadCartFromFirestore(userId: string): Promise<CartItem[]> {
   if (!userId) return []; // If no user ID, return an empty cart
 
@@ -22,7 +22,7 @@ export async function loadCartFromFirestore(userId: string): Promise<CartItem[]>
     // Get the user's cart document from the "carts" collection
     const cartDoc = await getDoc(doc(db, "carts", userId));
     if (cartDoc.exists()) {
-      // Return the saved items or an empty array if items field is missing
+      // Return saved cart items or an empty array if items field is missing
       return cartDoc.data().items || [];
     }
   } catch (err) {

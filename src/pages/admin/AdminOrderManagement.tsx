@@ -37,11 +37,12 @@ interface Order {
   total: number;
 }
 
-// Initialize Firebase Auth instance for authentication operations
+// Initialize Firebase Authentication instance
 const auth = getAuth();
 
 // Main component to manage all admin order operations
 export function AdminOrderManagement() {
+
   // Local state for orders, loading/errors, pagination, filters, saving, delete confirm, and current user
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +59,7 @@ export function AdminOrderManagement() {
 
   // Run this when component first loads
   useEffect(() => {
+
     // Watch for auth changes (login/logout)
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
@@ -102,6 +104,7 @@ export function AdminOrderManagement() {
   // Function to update a specific order in the database
   async function updateOrder(orderId: string, updatedFields: Partial<Order>) {
     try {
+        // Clear errors, set saving state, and update the specified order document in Firestore
       setSavingOrderId(orderId);
       setUpdateError(null);
       const orderRef = doc(db, "orders", orderId);
@@ -121,7 +124,7 @@ export function AdminOrderManagement() {
     }
   }
 
-  // Shortcut function to update status and estimated delivery at once
+  // Update both status and estimated delivery fields of an order in one call
   async function updateStatusAndEstimatedDelivery(
     orderId: string,
     status: string,
@@ -178,8 +181,8 @@ export function AdminOrderManagement() {
         userId: order.userId,
         message,
         status,
-        images, // Array of all product images
-        productTitles, // Array of all product titles
+        images,  
+        productTitles,  
         createdAt: serverTimestamp(),
         read: false,
       });
@@ -188,9 +191,10 @@ export function AdminOrderManagement() {
     }
   }
 
-  // Delete an order from Firestore
+  // Delete an order document from Firestore by ID
   async function deleteOrder(orderId: string) {
     try {
+      // Set saving state and delete the specified order document from Firestore
       setSavingOrderId(orderId);
       const orderRef = doc(db, "orders", orderId);
       await deleteDoc(orderRef);
@@ -206,18 +210,18 @@ export function AdminOrderManagement() {
     }
   }
 
-  // Helpers to get current order info
+  // Helper to get the estimated delivery for a specific order
   const getEstimatedDelivery = (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     return order?.estimatedDelivery || null;
   };
-
+// Helper to get the status of a specific order by ID
   const getOrderStatus = (orderId: string) => {
     const order = orders.find((o) => o.id === orderId);
     return order?.status || "";
   };
 
-  // Centralized handleChange function for order fields
+  // Centralized handler to update order status or estimated delivery
   const handleChange = (
     orderId: string,
     field: "status" | "estimatedDelivery",
@@ -236,7 +240,7 @@ export function AdminOrderManagement() {
 
   if (error) return <p className="text-danger">{error}</p>;
 
-  // Filter orders by selected status
+  // Show all orders or filter them by the selected status
   const filteredOrders =
     filterStatus === "all"
       ? orders

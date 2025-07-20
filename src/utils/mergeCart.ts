@@ -1,12 +1,12 @@
 import { CartItem } from "../redux/slices/cartSlice"; // Import the CartItem type so we can use it for type checking
 
-// This function combines two cart item arrays: one from local state and one from Firestore
+// This function merges two cart item arrays: one from local state and one from Firestore
 export function mergeCarts(
 
-  // Items from the local Redux store (before login)
+  // Items from local Redux store before user login
   localItems: CartItem[],
   
-  // Items from the Firestore (after login)
+  // Items from Firestore after user login
   firestoreItems: CartItem[]
 ): CartItem[] {
    // Create a map to store items using their ID as the key

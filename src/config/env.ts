@@ -1,3 +1,4 @@
+// Define the shape of the Firebase environment settings with all required keys
 export interface FirebaseEnv {
   apiKey: string;
   authDomain: string;
@@ -6,7 +7,7 @@ export interface FirebaseEnv {
   messagingSenderId: string;
   appId: string;
 }
-
+// Load Firebase config from environment variables or use empty strings if not set
 export const firebaseEnv: FirebaseEnv = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",

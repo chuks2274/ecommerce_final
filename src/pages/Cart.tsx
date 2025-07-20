@@ -19,7 +19,7 @@ export default function Cart() {
   // Hook to programmatically navigate to another page
   const navigate = useNavigate();
   
-  // Function to dispatch actions to the Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
  
    // Get the currently logged-in user from Redux store

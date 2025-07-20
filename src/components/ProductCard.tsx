@@ -23,7 +23,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false, is
   // Function to programmatically change routes  
   const navigate = useNavigate();
 
-  // Destructure product fields with defaults if missing
+ // Destructure product properties with safe default values, falling back to an empty object {} if product is null or undefined
   const {
     id = "",
     title = "No title",
@@ -36,7 +36,11 @@ export default function ProductCard({ product, onAddToCart, disabled = false, is
 
   // Create an array of 5 stars, filled or empty depending on rating
   const stars = useMemo(() => {
+
+    // Round the product rating to the nearest whole number 
     const filledStars = Math.round(rating?.rate || 0);
+
+    // Create an array of 5 items and map each to a filled or empty star based on the rating
     return Array(5)
       .fill(0)
       .map((_, i) =>
@@ -54,7 +58,7 @@ export default function ProductCard({ product, onAddToCart, disabled = false, is
       );
   }, [rating?.rate]); // Run when product's rating changes
 
-   // Navigate to reviews page when user clicks "View Review"
+   // Navigate to the product's reviews page if the product ID exists
   const handleViewReviews = useCallback(() => {
     if (!id) return;
     navigate(`/reviews/${id}`);

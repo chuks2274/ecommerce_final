@@ -14,6 +14,7 @@ const useFirebaseAuthListener = () => {
 
   // Run once on mount to start listening to auth changes
   useEffect(() => {
+    
     // Listen for auth state changes (login/logout)
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {

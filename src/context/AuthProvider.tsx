@@ -9,7 +9,7 @@ import { loadCartFromFirestore } from "../firebase/services/cartService";// Impo
 import type { AppDispatch, RootState } from "../redux/store"; // Import types for Redux dispatch and state
 import { AuthContext } from "./AuthContext"; // Import context used to share auth loading state with other components
 
-// AuthProvider component wraps the app and manages authentication state
+// This component wraps your app and handles login state, user data, and cart data.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 
  // Dispatch function to send actions to the Redux store
@@ -26,20 +26,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // useEffect to handle auth state change (user logs in or out)
   useEffect(() => {
-     // Firebase method that listens for auth changes (login/logout)
+     // Firebase method that sets up a listener for login or logout changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Try to get user document from Firestore
+          // Try to fetch the user's document from Firestore using their UID
           const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
           if (!userDoc.exists()) {
             console.error("User document not found.");
             setLoading(false);
             return;
           }
-            // Get actual user data
+            // Get the user data from the Firestore document.
           const userData = userDoc.data();
-         // Update Redux with user info
+         // Update Redux store with current user info, ensuring data is valid and formatted correctly
           dispatch(
             setUser({
               uid: firebaseUser.uid,
@@ -57,11 +57,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 : undefined,
             })
           );
-         // Load user's cart from Firestore
+         // Fetch the user's saved cart items from Firestore using their UID
           const savedCart = await loadCartFromFirestore(firebaseUser.uid);
+
+          // Update Redux store with the user's cart items
           dispatch(setCartItems(savedCart));
         } catch (error) {
           console.error("Error loading user or cart data", error);
+
+          // Dispatch action to set basic user info in Redux with default role
           dispatch(
             setUser({
               uid: firebaseUser.uid,
@@ -70,13 +74,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               role: "user",
             })
           );
+          // Dispatch action to clear the cart items in Redux store (set to empty)
           dispatch(setCartItems([]));
         }
       } else {
-        // If no user is logged in, clear Redux auth and cart
+        // Dispatch action to Redux store to clear user info and empty the cart
         dispatch(clearAuth());
         dispatch(setCartItems([]));
-        // Also remove any previous Firestore listener
+
+        // Call and reset the stored unsubscribe function to stop Firestore listener safely
         if (unsubscribeRef.current) {
           unsubscribeRef.current();
           unsubscribeRef.current = () => {};
@@ -86,8 +92,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Cleanup listener when component unmounts
-  }, [dispatch]);
+    return () => unsubscribe(); // Cleanup the auth state listener when the component unmounts
+
+  }, [dispatch]); // Run once when component mounts 
+
   // useEffect to listen for real-time changes in user document (like name or role update)
   useEffect(() => {
     // Only proceed if userUid is a valid string
@@ -108,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (docSnap) => {
         try {
           if (docSnap.exists()) {
+             // If the document exists, get its data, validate fields, format timestamps, and update Redux store with the user info
             const raw = docSnap.data();
             dispatch(
               updateUserData({
@@ -138,9 +147,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribe();
       unsubscribeRef.current = () => {};
     };
-  }, [userUid, dispatch]);
+  }, [userUid, dispatch]); // Run when userUid or dispatch changes
 
+  // Show a loading message while checking login status; once done, provide auth context to children
   if (loading) return <p className="text-center mt-5">Checking login...</p>;
-  // Once loading is done, provide auth context to child components
   return <AuthContext.Provider value={{ loading }}>{children}</AuthContext.Provider>;
 }

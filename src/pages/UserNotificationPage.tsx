@@ -2,6 +2,7 @@
 
 // Define and export the UserNotificationPage component
 export default function UserNotificationPage() {
+  
   // Render the UserNotifications component inside this page
   return <UserNotifications />;
 }

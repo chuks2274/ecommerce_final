@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore"; // Import useful Firestore functions for getting data and handling pagination
 import { db } from "../firebase/firebase"; // Import the database instance we set up
 
-// Define the structure of a product's rating (optional, with a number and count)
+// Define the structure of a product's rating with rate and count fields
 interface Rating {
   rate: number;
   count: number;
@@ -30,10 +30,10 @@ export interface Product {
 // Define how many products we want per page
 const PRODUCTS_PER_PAGE = 10;
 
-// Function to load a page of products from Firestore (with pagination)
+// Function to load a page of products from Firestore with pagination support
 export const fetchProductsByPage = async (
   
-  // Function parameters for pagination: page number, Firestore doc refs, and state setters for products, pagination, loading, and errors
+  // Function parameters for pagination and state setters
   page: number,
   pageStartDocsRef: React.MutableRefObject<
     QueryDocumentSnapshot<DocumentData>[]
@@ -47,7 +47,7 @@ export const fetchProductsByPage = async (
   setError(null);
 
   try {
-    // Get reference to "products" collection
+    // Get reference to the "products" collection in Firestore
     const productRef = collection(db, "products");
     let q; // This will hold our query
 
@@ -64,7 +64,7 @@ export const fetchProductsByPage = async (
         setLoading(false);
         return;
       }
-    // Start the query after the last document of the previous page
+    // Start the query after the last document from the previous page to paginate
       q = query(
         productRef,
         orderBy("title"),
@@ -72,10 +72,10 @@ export const fetchProductsByPage = async (
         limit(PRODUCTS_PER_PAGE + 1)
       );
     }
-    // Fetch documents from firestore using the query
+    // Get documents from Firestore using the query
     const snapshot = await getDocs(q);
 
-    // Extract array of documents
+    // Extract the array of documents from the snapshot
     const docs = snapshot.docs;
 
     // Check if there's a next page (based on if we got more than page size)
@@ -93,28 +93,28 @@ export const fetchProductsByPage = async (
    // Convert raw Firestore documents to Product objects
     const newProducts = productsToShow.map((doc) => {
 
-      // get the product data from Firestore
+      // Get the product data from Firestore document
       const data = doc.data();
 
-      // Make sure the rating object has numbers (fallback to 0 if missing)
+      // Ensure the rating object has numeric values, defaulting to 0 if missing
       const ratingFromData = data.rating ?? {};
       const rating: Rating = {
         rate: typeof ratingFromData.rate === "number" ? ratingFromData.rate : 0,
         count:
           typeof ratingFromData.count === "number" ? ratingFromData.count : 0,
       };
-   // Return the product object with ID and rating
+   // Return the product object including its ID and normalized rating
       return {
         id: doc.id,
         ...data,
         rating,
       };
-    }) as Product[];  // Convert the mapped result into an array of Product type for type safety
+    }) as Product[]; // Convert the mapped result to an array of Product for type safety
 
-    // Update UI with the fetched products
+    // Update the UI state with the fetched products
     setProducts(newProducts);
 
-     // Update flag to indicate if there’s another page
+     // Update the flag indicating whether there is a next page
     setHasNextPage(hasNext);
 
     // If something goes wrong, show error in console and to the user

@@ -6,7 +6,7 @@ import { auth, db } from "../firebase/firebase"; // Import Firebase auth and dat
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"; // Import Firebase auth functions to create users and update profiles
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"; // Import Firestore functions to set documents and timestamps
 
-// Async function to register a new user in Firebase and Firestore
+// Register a new user with email, password, name, address, and role ("user" or "admin")
 async function registerUser(
   email: string,
   password: string,
@@ -14,18 +14,19 @@ async function registerUser(
   address: string,
   role: "user" | "admin"
 ) {
-  // Create user with email and password in Firebase Auth
+  // Create a new user account in Firebase Authentication with email and password
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
     password
   );
+  // Extract the newly created Firebase user from the user credentials
   const firebaseUser = userCredential.user;
 
-  // Update user profile displayName with the provided name
+  // Update the Firebase user's display name with the provided name
   await updateProfile(firebaseUser, { displayName: name });
 
-  // Create a Firestore document for the user with additional info
+  // Create a Firestore document for the new user with their info and creation timestamp
   await setDoc(doc(db, "users", firebaseUser.uid), {
     name,
     email,
@@ -40,6 +41,7 @@ async function registerUser(
 
 // Main Register component for user registration form
 export default function Register() {
+
   // Local states for managing form input values (name, email, password, address, role), handling errors, showing loading state during registration, and displaying success toast
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -53,7 +55,7 @@ export default function Register() {
   // Function to change pages programmatically
   const navigate = useNavigate();
 
-  // Set up dispatch function to send actions to Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch();
 
   // Handle the registration process on form submission
@@ -77,7 +79,8 @@ export default function Register() {
 
     try {
       setLoading(true);
-      // Register user in Firebase Auth and Firestore
+
+      // Register a new user in Firebase Auth and create their Firestore profile
       const firebaseUser = await registerUser(
         email,
         password,
@@ -86,7 +89,7 @@ export default function Register() {
         role
       );
 
-      // Update Redux store with user info
+      // Dispatch action to update Redux store with authenticated user information
       dispatch(
         setUser({
           uid: firebaseUser.uid,

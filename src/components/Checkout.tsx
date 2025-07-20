@@ -7,7 +7,7 @@ import { placeOrder } from "../utils/placeOrder";  // Import reusable placeOrder
 // React functional component for the checkout page
 export default function Checkout() {
    
-   // Get Redux dispatch to send actions
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
    
  // Setup navigation function for redirecting users
@@ -16,7 +16,7 @@ export default function Checkout() {
   // Get the logged-in user info from Redux store
   const { user } = useSelector((state: RootState) => state.auth);
    
-  // Get the current items in the shopping cart from Redux store
+  // Get the current cart items from the Redux store
   const cartItems = useSelector((state: RootState) => state.cart.items);
    
  // Local states to manage loading spinner, success message, and error message during order placement
@@ -27,7 +27,7 @@ export default function Checkout() {
   // Calculate total price of all cart items, only recomputes when cartItems change
   const total = useMemo(
     () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [cartItems]
+    [cartItems] // Run when cartItems changes.
   );
    
   // Function to handle placing the order, memoized to avoid unnecessary re-creation
@@ -67,7 +67,7 @@ export default function Checkout() {
       setLoading(false);
   
     }
-  }, [user, cartItems, dispatch, navigate]);
+  }, [user, cartItems, dispatch, navigate]); // Run when user, cartItems, dispatch, or navigate changes.
 
   return (
     <div className="container mt-4">
@@ -89,7 +89,7 @@ export default function Checkout() {
             !user
               ? "Please sign in to place an order."
               : cartItems.length === 0
-              ? "Your cart is empty."
+              ? " Your cart is empty."
               : ""
           }
         >

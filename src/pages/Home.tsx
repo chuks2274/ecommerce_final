@@ -13,12 +13,16 @@ import type { Product } from "../types"; // Import type definition for Product
 
 // Home component shows the product list, allows filtering, and handles adding to cart
 export default function Home() {
-  // Set up dispatch function to send actions to Redux store
+
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useAppDispatch();
 
   // Get the current logged-in user from Redux store
   const user = useAppSelector((state) => state.auth.user);
+  
+  // Check if user is logged in
   const isLoggedIn = !!user;
+
   // Get the current cart items from Redux store
   const cartItems = useAppSelector((state) => state.cart.items);
 
@@ -40,7 +44,7 @@ export default function Home() {
       // Map Firestore data into an array of Product objects
       const productsData: Product[] = productsSnap.docs.map((doc) => {
         const data = doc.data();
-
+        // Convert each Firestore product document into a well-structured Product object with safe defaults
         return {
           id: doc.id,
           title: data.title,
@@ -118,7 +122,7 @@ export default function Home() {
 
       toast.success("Product added to cart!");
     },
-    [user, cartItems, dispatch]
+    [user, cartItems, dispatch] // Run when user, cart items, or dispatch function changes
   );
 
   return (

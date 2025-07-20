@@ -6,7 +6,7 @@ import orderReducer from "./slices/orderSlice";
 import productReducer from "./slices/productSlice";
 import userReducer from "./slices/userSlice";
 
-// Create the Redux store with combined reducers
+// Create the Redux store with combined reducers for auth, cart, order, product, and user
 export const store = configureStore({
   reducer: {
     auth: authReducer,        

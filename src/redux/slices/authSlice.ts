@@ -50,7 +50,7 @@ export const logoutUser = createAsyncThunk("auth/logout", async (_, thunkAPI) =>
   }
 });
 
-// Async thunk to fetch user data and role from Firestore
+// Async thunk to fetch extra user data from Firestore and return user with role (or null)
 export const fetchAndSetUser = createAsyncThunk<
   UserWithRole | null,       
   FirebaseUser | null,       
@@ -66,13 +66,16 @@ export const fetchAndSetUser = createAsyncThunk<
 
       // Get the user document snapshot
       const userDocSnap = await getDoc(userDocRef);
-
-      let role: UserWithRole["role"] = "user"; // Default role is 'user'
+ 
+      // Initialize user role, name, and timestamps with default or Firebase values
+      let role: UserWithRole["role"] = "user";  
       let name: string | undefined = firebaseUser.displayName ?? undefined;
       let createdAt: string | null = null;
       let updatedAt: string | null = null;
-
+ 
+      // Check if the user document exists in Firestore
       if (userDocSnap.exists()) {
+
         // Get user data from Firestore doc
         const userData = userDocSnap.data();
 
@@ -81,7 +84,7 @@ export const fetchAndSetUser = createAsyncThunk<
           role = userData.role;
         }
 
-        // Check optional fields
+        // Check and assign optional user fields if they exist
         if (userData.name) name = userData.name;
         if (userData.createdAt?.toDate)
           createdAt = userData.createdAt.toDate().toISOString();
@@ -137,6 +140,7 @@ const authSlice = createSlice({
       state.error = null;
     },
   },
+   // Define additional reducers to handle async actions and lifecycle states
   extraReducers: (builder) => {
     builder
       // When logoutUser starts (pending), set loading true and clear errors

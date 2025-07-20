@@ -9,6 +9,7 @@ import { useState } from "react"; // Import React hook to manage component state
 
 // Login component
 export default function Login() {
+
   // Local state for user credentials, error message, and loading status during login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +19,7 @@ export default function Login() {
   // Function to change pages programmatically
   const navigate = useNavigate();
 
-  // Set up dispatch function to send actions to Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch();
 
   // Function to handle login process
@@ -34,12 +35,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Sign in using Firebase auth
+      // Sign in user with trimmed email and password using Firebase Auth
       const userCred = await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
+      // Get the authenticated Firebase user from the sign-in credentials
       const firebaseUser = userCred.user;
 
       // Get the user's extra profile info from Firestore

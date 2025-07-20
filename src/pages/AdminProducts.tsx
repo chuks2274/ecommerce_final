@@ -40,10 +40,10 @@ function omitId(product: Product): Omit<Product, "id"> {
 // Main component for admin product management
 export default function AdminProducts() {
 
-  // Get the dispatch function to send Redux actions
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
 
-  // Select the product slice state: items, loading status, and error
+  // Extract items, loading status, and error from the product slice of the Redux store
   const { items, loading, error } = useSelector(
     (state: RootState) => state.product
   );

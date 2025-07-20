@@ -2,19 +2,20 @@ import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore"; 
 import { deleteUser, type User } from "firebase/auth"; // Import Firebase Auth function to delete user and User type for typing
 import { db } from "./firebase"; // Import initialized Firestore database instance
 
-// Function to get user profile data by UID from Firestore "users" collection
+// Fetch user profile data from Firestore "users" collection by UID
 export const getUserProfile = async (uid: string) => {
-  // Create a reference to the user document in Firestore
+
+  // Create a reference to the user's document in the "users" collection
   const docRef = doc(db, "users", uid);
 
-  // Fetch the document snapshot from Firestore
+  // Get the data for the user document from Firestore
   const snapshot = await getDoc(docRef);
 
   // Return user data if document exists, otherwise return null
   return snapshot.exists() ? snapshot.data() : null;
 };
 
-// Function to create a new user profile document with name, email, and address
+ // Create a new user profile with name, email, and address
 export const createUserProfile = async (
   uid: string,
   data: { name: string; email: string; address: string }
@@ -28,7 +29,7 @@ export const updateUserProfile = async (
   uid: string,
   data: Partial<{ name: string; address: string }>
 ) => {
-  // Update specified fields on the user document in Firestore
+  // Update only the provided fields in the user's Firestore document
   await updateDoc(doc(db, "users", uid), data);
 };
 

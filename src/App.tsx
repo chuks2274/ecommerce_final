@@ -30,7 +30,7 @@ import "./App.css"; // Import global styles
 // Main App component
 function App() {
   
-  // Start listening for Firebase auth changes (login/logout)
+  // Begin listening for Firebase authentication state changes (login/logout)
   useFirebaseAuthListener();
 
   // Get number of unread notifications

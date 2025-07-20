@@ -10,11 +10,12 @@ interface ProductReviewFormProps {
   productId: string;
 }
 
-// Main component for submitting a review
+// Main component function for submitting a product review
 export function ProductReviewForm({
   userId,
   productId,
 }: ProductReviewFormProps) {
+
   // Local state for rating, comment, submission status, success/error messages, and review check
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
@@ -30,11 +31,13 @@ export function ProductReviewForm({
       if (!userId || !productId) return;
 
       try {
-        // Go to: products → productId → reviews
+        // Reference the reviews sub-collection under this product
         const reviewsRef = collection(db, "products", productId, "reviews");
 
-        // Query for reviews where userId matches
+        // Create a query to find reviews where userId matches this user
         const q = query(reviewsRef, where("userId", "==", userId));
+
+         // Get documents matching the query
         const snapshot = await getDocs(q);
 
         // If at least one review exists, mark as already reviewed
@@ -54,7 +57,7 @@ export function ProductReviewForm({
     setSuccessMsg("");
   }, [rating, comment]); // Run when rating or comment changes
 
-  // Handle form submission
+  // Function to handle form submission
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -76,7 +79,7 @@ export function ProductReviewForm({
       setSubmitting(true);
 
       try {
-        // Send review to Firestore
+        // Send the review data to the database and wait for the submission to complete
         await submitReview({ userId, productId, rating, comment });
 
         // Show success message and clear inputs

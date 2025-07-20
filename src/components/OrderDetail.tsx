@@ -42,7 +42,7 @@ export default function OrderDetail() {
   // Function to programmatically navigate to another page
   const navigate = useNavigate();
 
-  // Get the logged-in user
+  // Get the currently authenticated user from the auth context
   const { currentUser } = useAuth();
 
   // Local state for order data, loading/error messages, delete status, confirmation, and review visibility
@@ -71,23 +71,24 @@ export default function OrderDetail() {
       setError("");
 
       try {
-        // Reference to the specific order document
+        // Get a reference to a specific order document in the "orders" collection using the orderId
         const orderDocRef = doc(db, "orders", orderId!);
 
-        // Get the document data
+        // Get the order document snapshot from Firestore using its reference
         const docSnap = await getDoc(orderDocRef);
 
-        // If order is found
+        // If the order document exists in Firestore, get its data
         if (docSnap.exists()) {
           const data = docSnap.data() as DocumentData;
 
-          // Convert Firestore timestamp to JS Date
+          // Initialize a variable to store the createdAt date (null by default)
           let createdAtDate: Date | null = null;
+          // If the 'createdAt' field exists and is a Firestore Timestamp, convert it to a JavaScript Date
           if (data.createdAt && data.createdAt instanceof Timestamp) {
             createdAtDate = data.createdAt.toDate();
           }
 
-          // Normalize items array to fill missing fields with defaults
+          // Ensure all order items have required fields by filling missing ones with default values
           const normalizedItems: OrderItem[] = (data.items ?? []).map(
             (item: Partial<OrderItem>) => ({
               id: item.id || item.productId || "",
@@ -99,7 +100,7 @@ export default function OrderDetail() {
             })
           );
 
-          // Save order to state
+          // Save order to local state
           setOrder({
             id: orderId!,
             userId: data.userId,

@@ -37,7 +37,7 @@ export default function UserNotifications() {
     if (!currentUser) return;
 
     try {
-      // Create a Firestore query: get notifications for current user, ordered by newest first
+      // Create a query to get notifications for the current user, sorted from newest to oldest
       const q = query(
         collection(db, "notifications"),
         where("userId", "==", currentUser.uid),

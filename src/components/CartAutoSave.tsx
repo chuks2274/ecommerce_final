@@ -7,23 +7,23 @@ import type { AppDispatch } from "../redux/store"; // Import type for dispatch f
 // Define a component that automatically saves the user's cart to the backend when it changes
 const CartAutoSave = () => {
 
-  // Create a dispatch function to send acyions to the Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get current logged-in user's ID from Redux state
+  // Get current logged-in user's ID from Redux, or undefined if no user is logged in
   const userId = useAppSelector((state) => state.auth.user?.uid);
 
   // Get current cart items from Redux state
   const cartItems = useAppSelector((state) => state.cart.items);
 
-  // Store timeout ID for debouncing save requests
+  // It creates a place to store the ID returned by setTimeout(...)
   const debounceTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     // If user is not logged in, do nothing
     if (!userId) return;
     
-     // If a save timeout already exists, clear it to reset debounce timer
+     // If a timer exists, cancel it to prevent running the previous save action
     if (debounceTimeout.current !== null) {
       window.clearTimeout(debounceTimeout.current);
     }

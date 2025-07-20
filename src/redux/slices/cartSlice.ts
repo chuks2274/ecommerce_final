@@ -25,27 +25,29 @@ const initialState: CartState = {
   error: null,
 };
 
-// Fetch cart from Firestore for a given user
+// Async thunk to fetch the cart items for a given userId from Firestore
 export const fetchCart = createAsyncThunk<CartItem[], string>(
   "cart/fetchCart",
   async (userId, { rejectWithValue }) => {
     try {
+
       // Get document reference for user cart
       const cartRef = doc(db, "carts", userId);
+
       // Try to fetch the document
       const snapshot = await getDoc(cartRef);
       if (snapshot.exists()) {
          // Return cart items if found
         return snapshot.data().items as CartItem[];
       }
-      return [];
+      return [];// Return empty array if no cart items found
     } catch {
       return rejectWithValue("Failed to fetch cart");
     }
   }
 );
 
-// Save cart to Firestore for a given user
+// Async thunk to save user's cart items to Firestore
 export const saveCart = createAsyncThunk<
   CartItem[],
   { userId: string; items: CartItem[] }
@@ -54,10 +56,13 @@ export const saveCart = createAsyncThunk<
   async ({ userId, items }, { rejectWithValue }) => {
     try {
       if (!userId) throw new Error("No user ID provided");
+
       // Get document reference for user cart
       const cartRef = doc(db, "carts", userId);
+
       // Save items to Firestore
       await setDoc(cartRef, { items });
+
       return items; // Return saved items
     } catch {
       return rejectWithValue("Failed to save cart");
@@ -69,7 +74,7 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
-    // Set cart items directly (used to replace entire cart)
+    // Reducer to replace the entire cart with new items
     setCartItems(state, action: PayloadAction<CartItem[]>) {
       state.items = action.payload;
     },
@@ -109,7 +114,7 @@ const cartSlice = createSlice({
         state.status = "loading";
         state.error = null;
       })
-      // When fetchCart succeeds
+      // When fetchCart succeeds, update cart if items are different
       .addCase(fetchCart.fulfilled, (state, action) => {
         const isDifferent =
           JSON.stringify(state.items) !== JSON.stringify(action.payload);
@@ -129,7 +134,7 @@ const cartSlice = createSlice({
         state.status = "loading";
         state.error = null;
       })
-       // When saveCart succeeds
+       // When saveCart succeeds, update cart if saved items differ from current state
       .addCase(saveCart.fulfilled, (state, action) => {
         const isDifferent =
           JSON.stringify(state.items) !== JSON.stringify(action.payload);
@@ -155,5 +160,6 @@ export const {
   removeFromCart,
   clearCart,
 } = cartSlice.actions;
-// Export reducer so it can be added to the Redux store
+
+// Export the reducer function to be used in the Redux store
 export default cartSlice.reducer;

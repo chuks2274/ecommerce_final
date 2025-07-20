@@ -36,7 +36,8 @@ const statusBadgeClasses: Record<string, string> = {
 
 // Main component to show user's order history
 export default function OrderHistory() {
-  // Set up dispatch function to send actions to Redux store
+
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
 
   // Navigate to another page programmatically
@@ -45,7 +46,7 @@ export default function OrderHistory() {
   // Get the currently logged-in user from Redux store
   const user = useAppSelector((state) => state.auth.user);
 
-  // Get the order list, loading state, and error from Redux store
+  // Get orders, loading state, and error from the Redux store
   const { orders, loading, error } = useAppSelector(
     (state) => state.order as OrderState
   );
@@ -82,6 +83,7 @@ export default function OrderHistory() {
   // Function to cancel an order
   async function cancelOrder(order: OrderType) {
     try {
+      // Destructure order details and get Firestore reference to the specific order document
       const { id: orderId, userId, items } = order;
       const orderRef = doc(db, "orders", orderId);
 
@@ -122,7 +124,7 @@ export default function OrderHistory() {
           read: false,
         })
       );
-
+      // Wait for all admin notification promises to complete
       await Promise.all(adminNotifPromises);
     } catch (error) {
       console.error("Failed to cancel order:", error);

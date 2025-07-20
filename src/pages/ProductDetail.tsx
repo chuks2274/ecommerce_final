@@ -27,6 +27,7 @@ interface Review {
 
 // Component for showing product details and reviews
 export default function ProductDetail() {
+
   // Get the product ID from the URL
   const { id: productId } = useParams<{ id: string }>();
 
@@ -63,11 +64,12 @@ export default function ProductDetail() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        // Convert Firestore snapshot to a list of review objects
+        // Map Firestore review documents to an array of Review objects with IDs
         const revs: Review[] = snapshot.docs.map((doc) => {
           const data = doc.data() as Omit<Review, "id">;
           return { id: doc.id, ...data };
         });
+        // Save the fetched reviews to state and clear any previous error
         setReviews(revs);
         setError(null);
       },
@@ -90,7 +92,7 @@ export default function ProductDetail() {
       // Add review ID to the loading state
       setDeleteLoadingIds((ids) => [...ids, reviewId]);
 
-      // Build path to the review in Firestore
+      // Create a reference to a specific review document under a product in Firestore
       const reviewRef = doc(db, "products", productId, "reviews", reviewId);
 
       // Delete the review from Firestore

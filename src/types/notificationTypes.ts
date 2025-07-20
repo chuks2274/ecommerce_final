@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore"; // Import Timestamp type from Firebase Firestore for time fields
 
-// Define the shape of a Notification object
+// Define the structure of a Notification object
 export interface Notification {
   id: string;           
   userId: string;       

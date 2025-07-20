@@ -62,7 +62,7 @@ export default function AddProductPage() {
     }
   };
 
-  // Check if inputs are valid
+  // Validate inputs and collect any error messages
   const validateInputs = () => {
     const newErrors: string[] = [];
     if (!title.trim()) newErrors.push("Title is required");

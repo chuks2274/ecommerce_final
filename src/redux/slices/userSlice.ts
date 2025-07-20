@@ -13,7 +13,7 @@ import {
 } from "firebase/firestore"; // Import Firestore functions
 import { auth, db } from "../../firebase/firebase"; // Import Firebase authentication and Firestore database instances
 
-// Define the shape of user profile data
+// Define the structure of user profile data
 interface ProfileData {
   name: string;
   address: string;
@@ -21,7 +21,7 @@ interface ProfileData {
   createdAt?: string;  
 }
 
-// Define the state shape for user slice
+// Define the shape of the user slice state
 interface UserState {
   profile: ProfileData | null;  
   loading: boolean;             
@@ -29,7 +29,7 @@ interface UserState {
   success: string | null;       
 }
 
-// Initial state setup
+// Initial state for the user slice
 const initialState: UserState = {
   profile: null,
   loading: false,
@@ -39,29 +39,30 @@ const initialState: UserState = {
 
  
 
-// Async thunk to fetch user profile from Firestore
+// Async thunk to fetch a user's profile data from Firestore
 export const fetchUserProfile = createAsyncThunk<
   ProfileData,
   string,                
   { rejectValue: string }
 >(
   "user/fetchUserProfile",
+  // Async function to fetch user profile by UID
   async (uid, { rejectWithValue }) => {
     try {
-      // Reference the user document by uid
+      // Get a reference to the user document in Firestore using the UID
       const docRef = doc(db, "users", uid);
 
-      // Get the document snapshot
+      // Get the user document snapshot from Firestore
       const docSnap = await getDoc(docRef);
 
       // If document doesn't exist, reject with error
       if (!docSnap.exists()) {
         return rejectWithValue("Profile does not exist.");
       }
-      // Extract data from snapshot
+      // Get the document data from the snapshot
       const data = docSnap.data();
 
-      // Return profile data with createdAt serialized to ISO string
+      // Return profile data with createdAt converted to an ISO string
       return {
         ...data,
         createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : undefined,
@@ -79,24 +80,25 @@ export const editUserProfile = createAsyncThunk<
   { rejectValue: string }
 >(
   "user/editUserProfile",
+  // Async function to update user profile using UID and new data
   async ({ uid, data }, { rejectWithValue }) => {
     try {
-      // Get currently authenticated user from Firebase Auth
+      // Get the currently authenticated user from Firebase Auth
       const user = auth.currentUser;
       if (!user) throw new Error("No authenticated user");
 
-      // Update Firebase Auth displayName if it differs from data.name
+      // Update Firebase Auth displayName only if it differs from data.name
       if (data.name !== user.displayName) {
         await updateProfile(user, { displayName: data.name });
       }
 
-      // Reference user doc in Firestore
+      // Get a reference to the user document in Firestore
       const userDocRef = doc(db, "users", uid);
 
       // Update user doc data with merge to avoid overwriting
       await setDoc(userDocRef, data, { merge: true });
 
-      // Return updated profile data
+      // Return the updated profile data
       return data;
     } catch {
       return rejectWithValue("Failed to update profile.");
@@ -104,19 +106,20 @@ export const editUserProfile = createAsyncThunk<
   }
 );
 
-// Async thunk to delete user account from Firebase Auth and Firestore
+// Async thunk to delete a user account from Firebase Auth and Firestore
 export const removeUserAccount = createAsyncThunk<
   void,
   { uid: string; user: User },    
   { rejectValue: string }
 >(
   "user/removeUserAccount",
+  // Async function to delete user by UID and user object
   async ({ uid, user }, { rejectWithValue }) => {
     try {
-      // Delete user document from Firestore
+      // Delete the user document from Firestore
       await deleteDoc(doc(db, "users", uid));
 
-      // Delete user from Firebase Authentication
+      // Delete the user from Firebase Authentication
       await deleteUser(user);
     } catch {
       return rejectWithValue("Failed to delete account. You may need to re-login.");
@@ -124,17 +127,17 @@ export const removeUserAccount = createAsyncThunk<
   }
 );
 
-// Create Redux slice for user profile state management
+// Create a Redux slice to manage user profile state
 const userSlice = createSlice({
   name: "user",          
   initialState,           
   reducers: {
-    // Clear any error or success messages
+    // Clear error and success messages from the state
     clearMessages(state) {
       state.error = null;
       state.success = null;
     },
-    // Clear user profile and reset status flags
+    // Clear user profile and reset loading, error, and success states
     clearUser(state) {
       state.profile = null;
       state.error = null;
@@ -142,56 +145,57 @@ const userSlice = createSlice({
       state.loading = false;
     },
   },
+  // Add handlers for actions defined outside the slice's normal reducers (such as async thunk actions)
   extraReducers: (builder) => {
     builder
-      // When fetching profile starts
+      // When fetching the user profile starts (pending state)
       .addCase(fetchUserProfile.pending, (state) => {
         state.loading = true;      
         state.error = null;       
         state.success = null;     
       })
-      // When fetching profile succeeds
+      // When fetching the user profile succeeds (fulfilled state)
       .addCase(fetchUserProfile.fulfilled, (state, action: PayloadAction<ProfileData>) => {
         state.loading = false;     
         state.profile = action.payload;  
       })
-      // When fetching profile fails
+      // When fetching the user profile fails (rejected state)
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.loading = false;     
         state.error = action.payload || "Failed to load profile";  
       })
 
-      // When editing profile starts
+      // When editing the user profile starts (pending state)
       .addCase(editUserProfile.pending, (state) => {
         state.loading = true;      
         state.error = null;       
         state.success = null;     
       })
-      // When editing profile succeeds
+      // When editing the user profile succeeds (fulfilled state)
       .addCase(editUserProfile.fulfilled, (state, action: PayloadAction<ProfileData>) => {
         state.loading = false;     
         state.profile = action.payload;  
         state.success = "Profile updated successfully.";  
       })
-      // When editing profile fails
+      // When editing the user profile fails (rejected state)
       .addCase(editUserProfile.rejected, (state, action) => {
         state.loading = false;     
         state.error = action.payload || "Failed to update profile";  
       })
 
-      // When removing user account starts
+      // When removing the user account starts (pending state)
       .addCase(removeUserAccount.pending, (state) => {
         state.loading = true;      
         state.error = null;       
         state.success = null;      
       })
-      // When removing user account succeeds
+      // When removing the user account succeeds (fulfilled state)
       .addCase(removeUserAccount.fulfilled, (state) => {
         state.loading = false;     
         state.profile = null;     
         state.success = "Account deleted successfully.";  
       })
-      // When removing user account fails
+      // When removing the user account fails (rejected state)
       .addCase(removeUserAccount.rejected, (state, action) => {
         state.loading = false;     
         state.error = action.payload || "Failed to delete account";  
@@ -199,8 +203,8 @@ const userSlice = createSlice({
   },
 });
 
-// Export actions for clearing messages and user profile
+// Export action creators for clearing messages and user profile
 export const { clearMessages, clearUser } = userSlice.actions;
 
-// Export the reducer for Redux store
+// Export the reducer function to be used in the Redux store
 export default userSlice.reducer;

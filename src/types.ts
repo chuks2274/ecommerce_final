@@ -1,10 +1,10 @@
-// Define the shape of a Rating object with two properties
+// Define a Rating object with rate and count properties
 export interface Rating {
   rate: number;    
   count: number;   
 }
 
-// Define the shape of a Product object with various properties
+// Define the Product object structure with key properties and optional fields
 export interface Product {
   id: string;               
   title: string;            

@@ -14,10 +14,11 @@ interface NavbarProps {
 
 // Main component definition
 export default function Navbar({ unreadCount }: NavbarProps) {
+  
   // Get current user info from Redux store
   const user = useSelector((state: RootState) => state.auth.user);
 
-  // Get items in cart from Redux store
+  // Get the current cart items from the Redux store
   const cartItems = useSelector((state: RootState) => state.cart.items);
 
   // Calculate total items in cart using useMemo to optimize performance
@@ -26,7 +27,7 @@ export default function Navbar({ unreadCount }: NavbarProps) {
     [cartItems] // Run when cartItems changes
   );
 
-  // Get the Redux dispatch function to send actions
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useDispatch<AppDispatch>();
 
   // Hook to navigate programmatically

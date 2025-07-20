@@ -14,14 +14,14 @@ export interface OrderData {
   total: number;
 }
 
-// This function creates an order and also sends a notification to the user
+// Create a new order and notify the user, returning the order ID
 export async function createOrderAndNotify(
   orderData: OrderData,
   userId: string,
   images: string[] = []
 ): Promise<string> {
   try {
-    // Add the new order to the "orders" collection in Firestore
+    // Add a new order document to the "orders" collection with order data, user ID, status, and creation timestamp
     const orderRef = await addDoc(collection(db, "orders"), {
       ...orderData,
       userId,
@@ -29,7 +29,7 @@ export async function createOrderAndNotify(
       createdAt: Timestamp.now(),
     });
 
-    // Add a new notification for the user in the "notifications" collection
+    // Add a new notification document to the "notifications" collection with order info and read status
     await addDoc(collection(db, "notifications"), {
       userId,
       message: `🎉 Your order ${orderRef.id} is now pending!`,
@@ -39,10 +39,10 @@ export async function createOrderAndNotify(
       read: false,
     });
 
-    // Return the ID of the new order so the app can show it or use it later
+    // Return the new order's ID so the app can display or reference it later
     return orderRef.id;
+
   } catch (error) {
-    // If anything fails, log it and rethrow the error so calling code can handle it
     console.error("Failed to create order and notify:", error);
     throw error;
   }

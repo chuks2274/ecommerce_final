@@ -56,7 +56,7 @@ export default function ManageProductsPage() {
     setDeletingId(id);
     setError(null);
     try {
-      // delete from Firestore
+      // Delete product from Firestore by ID
       await deleteDoc(doc(db, "products", id));
 
       // If last product on page and not first page, go back one page
@@ -106,7 +106,7 @@ export default function ManageProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Update product document in Firestore with trimmed and validated fields including nested rating info
+      // Update product document in Firestore with trimmed and validated fields, including nested rating values
       await updateDoc(doc(db, "products", editingProduct.id), {
         title: editingProduct.title.trim(),
         description: editingProduct.description?.trim() ?? "",
@@ -151,8 +151,9 @@ export default function ManageProductsPage() {
 
     const { name, value, type } = e.target;
      
-    // Check if the input name is for a rating field, then get the specific rating key (like 'rate' or 'count') and
+    // Check if the input name starts with "rating." indicating a rating field
     if (name.startsWith("rating.")) {
+      // Get the specific rating key from the input name and prepare a number to store the parsed value.
       const ratingKey = name.split(".")[1] as keyof NonNullable<Product["rating"]>;
       let parsedValue: number = 0;
 
@@ -181,9 +182,9 @@ export default function ManageProductsPage() {
 
       return;
     }
-   // For normal fields, convert number inputs to numbers and keep text as is
+    // Allow value to be either a string or number depending on input type
     let newValue: string | number = value;
-
+     // If the input type is number, parse and ensure newValue is zero or positive
     if (type === "number") {
       newValue = Math.max(0, parseFloat(value) || 0);
     }

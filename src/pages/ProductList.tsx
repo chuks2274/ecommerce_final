@@ -14,10 +14,10 @@ import ProductCard from "../components/ProductCard"; // Import the reusable Prod
 // Main component to show a list of products
 export default function ProductList() {
 
-  // Set up dispatch function to send actions to Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useAppDispatch();
 
-  // Read product-related state from Redux: product list, search text, selected category
+  // Extract items, search term, and category from the product slice in Redux store
   const { items, search, category } = useAppSelector((state) => state.product);
 
    // Run this effect when the component loads to fetch product data
@@ -35,6 +35,7 @@ export default function ProductList() {
   // Filter the products based on selected category and search text
   const filtered = useMemo(() => {
     return typedItems.filter((product) => {
+      
       // Check if the category matches or is set to "all"
       const matchCategory = category === "all" || product.category === category;
 

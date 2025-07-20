@@ -13,7 +13,7 @@ import {
 import { db } from "../../firebase/firebase"; // Import Firestore database instance
 import { type Product } from "../../types"; // Import the Product type that includes id and optional description
 
-// Define the state shape for product slice
+// Define the structure of the product slice state
 interface ProductState {
   items: Product[];
   loading: boolean;
@@ -22,7 +22,7 @@ interface ProductState {
   category: string;
 }
 
-// Initialize the product slice state
+// Set the initial state for the product slice
 const initialState: ProductState = {
   items: [],
   loading: false,
@@ -31,40 +31,43 @@ const initialState: ProductState = {
   category: "all",
 };
 
-// Async thunk to load all products from Firestore
+// Async thunk to fetch all products from Firestore
 export const loadProducts = createAsyncThunk("products/load", async () => {
-  // Fetch all product documents from Firestore collection "products"
+
+  // Get all products from the Firestore "products" collection
   const snapshot: QuerySnapshot<DocumentData> = await getDocs(
     collection(db, "products")
   );
 
-  // Map Firestore docs to Product array including id and data
+  // Map Firestore documents to a Product array, including each doc's ID and data
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
   })) as Product[];
 });
 
-// Async thunk to create a new product (Firestore generates id)
+// Async thunk to create a new product in Firestore (takes a product object without 'id')
 export const createProduct = createAsyncThunk(
   "products/create",
   async (product: Omit<Product, "id">) => {
-    // Add new product doc to Firestore "products" collection
+
+    // Add a new product document to the Firestore "products" collection
     const docRef = await addDoc(collection(db, "products"), product);
 
-    // Return product including generated id
+    // Return the product object including the Firestore-generated ID
     return { id: docRef.id, ...product };
   }
 );
 
-// Async thunk to update an existing product
+// Async thunk to update an existing product in Firestore (expects full Product with ID)
 export const updateProduct = createAsyncThunk(
   "products/update",
   async (product: Product) => {
-    // Reference the product doc in Firestore by id
+
+    // Get a reference to the product document in Firestore by its ID
     const docRef = doc(db, "products", product.id);
 
-    // Update fields in Firestore document
+    // Update the specified fields in the Firestore product document
     await updateDoc(docRef, {
       title: product.title,
       price: product.price,
@@ -77,81 +80,83 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
-// Async thunk to delete a product by id
+ // Async thunk to delete a product from Firestore by its ID
 export const deleteProduct = createAsyncThunk(
   "products/delete",
   async (id: string) => {
-    // Reference the product doc in Firestore by id
+
+    // Get a reference to the product document in Firestore by its ID
     const docRef = doc(db, "products", id);
 
-    // Delete the Firestore document
+    // Delete the product document from Firestore
     await deleteDoc(docRef);
 
-    // Return the deleted product id
+    // Return the ID of the deleted product
     return id;
   }
 );
 
-// Create Redux slice for product state management
+// Create a Redux slice to manage product state and reducers
 const productSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
-    // Set the search string in state
+    // Update the search string in the product state
     setSearch(state, action: PayloadAction<string>) {
       state.search = action.payload;
     },
-    // Clear the search string (set empty)
+    // Clear the search string by setting it to an empty string
     clearSearch(state) {
       state.search = "";
     },
-    // Set the category filter in state
+    // Update the category filter in the product state
     setCategory(state, action: PayloadAction<string>) {
       state.category = action.payload;
     },
-    // Clear the category filter (reset to "all")
+    // Clear the category filter by resetting it to "all"
     clearCategory(state) {
       state.category = "all";
     },
   },
+  // Add handlers for actions defined outside the slice's normal reducers (such as async thunk actions)
   extraReducers: (builder) => {
     builder
-      // When loading products starts
+      // When the product loading begins (pending state)
       .addCase(loadProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      // When loading products succeeds
+      // When loading products succeeds (fulfilled state)
       .addCase(loadProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
       })
-      // When loading products fails
+      // When loading products fails (rejected state)
       .addCase(loadProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to load products";
       })
-      // When a new product is created successfully
+     // When a new product is successfully created (fulfilled state)
       .addCase(createProduct.fulfilled, (state, action) => {
         state.items.push(action.payload);
       })
-      // When a product is updated successfully
+      // When a product update succeeds (fulfilled state)
       .addCase(updateProduct.fulfilled, (state, action) => {
-        // Find index of updated product in items array
+        // Find the index of the updated product in the items array
         const index = state.items.findIndex((p) => p.id === action.payload.id);
         if (index !== -1) {
           state.items[index] = action.payload;
         }
       })
-      // When a product is deleted successfully
+      // When a product deletion succeeds (fulfilled state)
       .addCase(deleteProduct.fulfilled, (state, action) => {
-        // Remove deleted product from state list by filtering
+        // Remove the deleted product from the items array by filtering it out
         state.items = state.items.filter((p) => p.id !== action.payload);
       });
   },
 });
 
-// Export synchronous action creators
+// Export synchronous action creators from the product slice
 export const { setSearch, clearSearch, setCategory, clearCategory } =
   productSlice.actions;
 

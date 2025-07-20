@@ -4,14 +4,17 @@ import { auth } from "../firebase/firebase"; // Import initialized Firebase Auth
 
 // Custom React hook to track current authenticated user and loading state
 export function useAuth() {
+
   // Local state for auth: user and loading status
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // useEffect to subscribe to Firebase auth state changes on component mount
   useEffect(() => {
+
     // Set up a listener for Firebase auth state changes and get the current user.
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      
       // Update state with the current user info and mark loading as complete.
       setCurrentUser(user);
       setLoading(false);

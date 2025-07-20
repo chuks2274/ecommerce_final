@@ -288,14 +288,6 @@ Receive visual feedback during order confirmation
 Generate order and notification documents in Firestore
 Notify both the user and all admins of the order status
 
-## CartPage.tsx
-### What This File Does
-Displays all items currently in the user's cart.
-Calculates and shows the total order price.
-Allows users to submit their cart as an order.
-Handles basic validation (e.g., user must be logged in, cart must not be empty).
-Shows success or error messages based on the result of the order submission.
-
 ## ForgotPasswordEmail.tsx
 ### What This File Does
 Provides a form for users to enter their email address.

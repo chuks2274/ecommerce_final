@@ -59,7 +59,7 @@ export function ProductReviewsList({ productId, userId }: Props) {
     // Reference to the "reviews" collection in Firestore
     const reviewsRef = collection(db, "reviews");
 
-    // Create a query to fetch reviews for the current product, sorted by newest first
+    // Query that fetches reviews for a specific product and sorts them from newest to oldest
     const q = query(
       reviewsRef,
       where("productId", "==", productId),
@@ -73,6 +73,7 @@ export function ProductReviewsList({ productId, userId }: Props) {
         // Convert Firestore documents into Review objects
         const fetched: Review[] = snapshot.docs.map((doc) => {
           const data = doc.data();
+          // Create a Review object from the Firestore document data
           return {
             id: doc.id,
             comment: data.comment,
@@ -105,7 +106,7 @@ export function ProductReviewsList({ productId, userId }: Props) {
       setError("You must be logged in to delete a review.");
       return;
     }
-
+    // Mark the review with reviewId as currently being deleted
     setDeletingId(reviewId);
     setError("");
 

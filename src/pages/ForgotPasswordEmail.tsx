@@ -12,7 +12,7 @@ export default function ForgotPasswordEmail() {
   const [loading, setLoading] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(false);
 
-  // Get Firebase Auth instance
+  // Get the Firebase Authentication instance to manage user auth
   const auth = getAuth();
 
   // Function to redirect user to another page

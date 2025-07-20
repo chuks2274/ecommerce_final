@@ -1,7 +1,7 @@
 import { db } from "../firebase/firebase"; // Import the Firestore database instance from your Firebase configuration file
 import { doc, collection, runTransaction, Timestamp } from "firebase/firestore"; // Import functions from Firestore to work with documents and run database transactions
 
-// Define the shape of the data we expect for a review
+// Defines the structure of a review input
 interface ReviewInput {
   userId: string;
   productId: string;
@@ -36,15 +36,16 @@ export async function submitReview({
     throw new Error("Comment must be a non-empty string");
   }
 
-  // Get a reference to the product document in Firestore
+  // Get a reference to the specific product document by its ID in Firestore
   const productRef = doc(db, "products", productId);
 
-  // Get a reference to the "reviews" subcollection under the specific product
+  // Get a reference to the 'reviews' subcollection for this specific product in Firestore
   const reviewsCollectionRef = collection(db, "products", productId, "reviews");
 
   // Use a transaction to safely update the product's average rating and add the new review
   await runTransaction(db, async (transaction) => {
-    // Get the current product document snapshot (its data)
+
+    // Get the current product document snapshot safely within the transaction
     const productSnap = await transaction.get(productRef);
 
     // If the product doesn't exist in the database, stop and throw an error
@@ -64,10 +65,10 @@ export async function submitReview({
     // Add 1 to the number of reviews
     const newCount = currentCount + 1;
 
-    // Calculate the new average rating with the new rating included
+    // Calculate the new average rating by adding the new rating to the total, then dividing by the new number of reviews
     const newRate = (currentRate * currentCount + rating) / newCount;
 
-    // Create a new review document with a random ID in the "reviews" subcollection
+    // Create a new, empty document with a random ID inside the "reviews" subcollection
     const newReviewRef = doc(reviewsCollectionRef);
 
     // Save the new review data to Firestore

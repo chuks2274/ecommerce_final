@@ -1,7 +1,7 @@
 import { createContext } from "react"; // Import createContext function from React library
 
 
-// Create and export AuthContext with default { loading: true } to indicate initial auth loading state
+// Create a context to share loading state (e.g. checking login) with other components
 export const AuthContext = createContext<{ loading: boolean }>({
   loading: true,
 });

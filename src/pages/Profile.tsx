@@ -14,13 +14,13 @@ import { doc, onSnapshot } from "firebase/firestore"; // Firestore functions fro
 // Component for showing and editing the user's profile
 export default function Profile() {
 
-  // Set up dispatch function to send actions to Redux store
+  // Create a dispatch function to send actions to the Redux store
   const dispatch = useAppDispatch();
 
   // Function to change pages programmatically
   const navigate = useNavigate();
 
-  // Get the current Firebase user and auth loading status
+  // Get the current user and authentication loading state from the auth hook
   const { currentUser, loading: authLoading } = useAuth();
 
   // Get current user profile and status info from the Redux store
@@ -38,6 +38,7 @@ export default function Profile() {
 
   // Fetch the user profile when component mounts or currentUser changes
   useEffect(() => {
+    // If user is logged in, fetch their profile data
     if (currentUser?.uid) {
       dispatch(fetchUserProfile(currentUser.uid));
     }
@@ -47,11 +48,13 @@ export default function Profile() {
   useEffect(() => {
     if (!currentUser?.uid) return;
 
-    // Create a document reference to the user document
+    // Create a reference to the current user's document in Firestore
     const docRef = doc(db, "users", currentUser.uid);
 
-    // Subscribe to realtime updates of the user document
+    // Listen in real-time to changes on the document referenced by docRef
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      
+      // If user data exists in Firestore, fill the form with it; otherwise, reset form fields to empty
       if (snapshot.exists()) {
         const userData = snapshot.data();
         setForm({
@@ -69,7 +72,7 @@ export default function Profile() {
 
     // Cleanup listener on component unmount
     return () => unsubscribe();
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid]); // Run when currentUser UID changes
 
   // When profile data arrives, fill the form fields
   useEffect(() => {
@@ -93,7 +96,7 @@ export default function Profile() {
       errors.address = "Address must be at least 5 characters.";
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [form]);
+  }, [form]); // Run when form state changes
 
   // When user types in form fields, update the state and clear related validation errors
   const handleChange = (
@@ -104,7 +107,7 @@ export default function Profile() {
     setValidationErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  // When user clicks update, validate and send the update request
+  // Update user profile if not loading, user is logged in, and form is valid
   const handleUpdate = () => {
     if (!loading && currentUser?.uid && validateForm()) {
       dispatch(editUserProfile({ uid: currentUser.uid, data: form }));

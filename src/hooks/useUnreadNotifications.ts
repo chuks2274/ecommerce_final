@@ -5,6 +5,7 @@ import { useAuth } from "./useAuth"; // Import custom hook to get current authen
 
 // Custom hook to get the count of unread notifications for current user
 export function useUnreadNotifications() {
+  
   // Local state and context: get current user and track unread notifications count
   const { currentUser } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -28,6 +29,7 @@ export function useUnreadNotifications() {
 
     // Subscribe to real-time updates for this query
     const unsubscribe = onSnapshot(q, (snapshot) => {
+
       // If a debounce timer exists, clear it
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
 

@@ -16,7 +16,7 @@ interface CartItemCardProps {
   onIncrease: (id: string) => void;
   onRemove: (id: string) => void;
 }
-// Create the CartItemCard component
+// Create a React component that shows a cart item and handles quantity changes and removal
 const CartItemCard: React.FC<CartItemCardProps> = ({
   item,
   onDecrease,

@@ -26,6 +26,7 @@ const reviewsPerPage = 5;
 
 // Main component to display reviews for a product
 const ReviewPage = () => {
+
   // Get the productId param from the URL
   const { productId } = useParams();
 
@@ -73,18 +74,21 @@ const ReviewPage = () => {
           ...(doc.data() as Omit<Review, "id">), // Cast data to Review without id
         }));
 
-        // Get unique userIds from reviews
+        // Get unique user IDs from the fetched reviews
         const uniqueUserIds = Array.from(
           new Set(fetched.map((review) => review.userId))
         );
-
+       // Initialize an object to store usernames keyed by user ID
         const newUsernames: Record<string, string> = {};
 
-        // For each userId, fetch the username from users collection
+        // For each userId, fetch the username from the users collection
         for (const userId of uniqueUserIds) {
           const userDoc = await getDoc(doc(db, "users", userId));
           if (userDoc.exists()) {
+
+            // Get data from the fetched user document
             const data = userDoc.data();
+
             // Use username or displayName or default to "User"
             newUsernames[userId] = data.username || data.displayName || "User";
           } else {
@@ -92,7 +96,7 @@ const ReviewPage = () => {
             newUsernames[userId] = "Anonymous";
           }
         }
-
+       // Update state with usernames and reviews, then reset loading and error states
         setUsernames(newUsernames);
         setReviews(fetched);
         setLoading(false);

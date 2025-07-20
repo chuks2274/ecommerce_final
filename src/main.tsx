@@ -8,14 +8,14 @@ import { store } from "./redux/store"; // Import the configured Redux store
 import { AuthProvider } from "./context/AuthProvider"; // Import custom AuthProvider context to handle user authentication state
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Import Bootstrap JavaScript bundle for interactive components like modals, dropdowns, etc.
 
- 
+ // Create React root and render the app into the DOM element with id 'root'
 createRoot(document.getElementById('root')!).render(
   
   <StrictMode>
-    {/* Wrap app with Redux Provider to give access to the Redux store */}
+    {/* Wrap the app with Redux Provider to give access to the Redux store */}
     <Provider store={store}>
-      {/* Wrap app with AuthProvider to provide authentication context */}
-      <AuthProvider> {/* still used to sync user */}
+     {/* Wrap the app with AuthProvider to provide authentication context and sync user state */}
+      <AuthProvider> 
         <App />
       </AuthProvider>
     </Provider>

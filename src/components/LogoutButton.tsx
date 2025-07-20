@@ -1,13 +1,12 @@
 import { useState } from "react"; // Import useState hook to manage local component state
 import { useNavigate } from "react-router-dom"; // Import useNavigate to redirect after logout
-
 import { logoutUser } from "../redux/slices/authSlice"; // Import the logout thunk from Redux slice
 import { useAppDispatch } from "../redux/hooks"; // Import the typed dispatch hook
 
 // Define the LogoutButton component
 export default function LogoutButton() {
 
-  // Get the Redux dispatch function to send actions 
+ // Create a dispatch function to send actions to the Redux store
   const dispatch = useAppDispatch();
 
   // Hook to navigate programmatically
@@ -23,17 +22,19 @@ export default function LogoutButton() {
     setLoading(true);  
 
     try {
-      // Use the Redux thunk which handles Firebase signOut and clears Redux user state
+      // Run the logout action and wait for it to finish
       const resultAction = await dispatch(logoutUser());
-
+ 
+       // Check if the logout action was rejected (failed)
       if (logoutUser.rejected.match(resultAction)) {
-        // The thunk was rejected, handle the error here
+
+        // If the logout action failed, get the error message and show it.
         const errorMessage =
           resultAction.error?.message ?? "Failed to logout. Please try again.";
         console.error("Logout failed:", errorMessage);
         setError(errorMessage);
       } else {
-        // Success - redirect after logout
+        // If logout succeeded, redirect user to the login page.
         navigate("/login", { replace: true }); // Use replace to avoid back navigation to protected pages
       }
     } catch (err) {
@@ -42,6 +43,7 @@ export default function LogoutButton() {
       console.error("Logout failed:", errorMessage);
       setError(errorMessage);
     } finally {
+        // Always turn off loading state when done.
       setLoading(false);
     }
   };
