@@ -76,14 +76,10 @@ export default function Login() {
       // Redirect based on user role
       navigate(fullUser.role === "admin" ? "/admin" : "/");
     } catch (error) {
-      // Handle login errors
-      if (error instanceof Error) {
-        setErrorMessage("Login failed: " + error.message);
-      } else {
-        setErrorMessage("An unknown error occurred during login.");
-      }
+      console.error("Login error:", error); // Optional: for debugging
+      setErrorMessage("Invalid email or password. Please try again.");
       setLoading(false);
-    }
+   }
   };
 
   // JSX to render the login form
