@@ -8,7 +8,7 @@ It supports user registration/login, product browsing, cart management, checkout
 - Real-time updates and secure access
 - CI/CD pipeline using GitHub Actions + Vercel
 
-[View the live site](https://ecommercefinal-ashy.vercel.app/)
+[View the live site](https://final-project-36mcmb996-michael-chukwuka-meninwas-projects.vercel.app/)
 
 ## Testing Overview
 This project uses **Jest** and **React Testing Library** to test pages and components, including unit and integration tests.
