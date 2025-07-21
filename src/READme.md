@@ -8,7 +8,7 @@ It supports user registration/login, product browsing, cart management, checkout
 - Real-time updates and secure access
 - CI/CD pipeline using GitHub Actions + Vercel
 
-[View the live site](https://final-project-36mcmb996-michael-chukwuka-meninwas-projects.vercel.app/)
+[View the live site](https://final-project-one-rose.vercel.app/)
 
 Note: Firestore security rules are crucial for properly using or testing this app. I’ve included the rules from lines 513 to 634—simply copy, paste, and publish them in your Firebase console to ensure secure and accurate functionality.
 
