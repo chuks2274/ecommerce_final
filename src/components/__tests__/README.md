@@ -1,5 +1,13 @@
 # E-commerce Final Project
-## Live E-Commerce Application  
+
+A responsive e-commerce web application built with React, TypeScript, Redux Toolkit, and Firebase.  
+It supports user registration/login, product browsing, cart management, checkout, order history, and admin-level product control.
+
+- Authentication via Firebase (Email/Password)
+- Cart, orders, and reviews stored in Firestore
+- Real-time updates and secure access
+- CI/CD pipeline using GitHub Actions + Vercel
+
 [View the live site](https://ecommercefinal-ashy.vercel.app/)
 
 ## Testing Overview
@@ -63,3 +71,15 @@ To enable the deployment workflows, the following secrets must be added securely
 `VERCEL_PROJECT_ID` — Your Vercel project ID.
 
 These secrets are used by GitHub Actions to authenticate and interact with your Vercel project during deployment.
+
+## Installation & Setup
+
+### Clone the Repository
+```bash
+git clone https://github.com/chuks2274/ecommerce_final.git
+cd ecommerce_final
+npm install
+
+### Run the Development Server
+```bash
+npm run dev

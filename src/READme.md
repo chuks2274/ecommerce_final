@@ -1,6 +1,15 @@
-# E-commerce App Project
-## Live E-Commerce Application  
+# E-commerce Final Project
+
+A responsive e-commerce web application built with React, TypeScript, Redux Toolkit, and Firebase.  
+It supports user registration/login, product browsing, cart management, checkout, order history, and admin-level product control.
+
+- Authentication via Firebase (Email/Password)
+- Cart, orders, and reviews stored in Firestore
+- Real-time updates and secure access
+- CI/CD pipeline using GitHub Actions + Vercel
+
 [View the live site](https://ecommercefinal-ashy.vercel.app/)
+
 Note: Firestore security rules are crucial for properly using or testing this app. I’ve included the rules from lines 513 to 634—simply copy, paste, and publish them in your Firebase console to ensure secure and accurate functionality.
 
 Select Role During Registration
@@ -713,8 +722,17 @@ const firebaseConfig = {
 };
 export const app = initializeApp(firebaseConfig);
 Publish above security rules
+
+## Installation & Setup
+### Clone the Repository
+```bash
+git clone https://github.com/chuks2274/ecommerce_final.git
+cd ecommerce_final
+npm install
+
+### Run the Development Server
+```bash
 npm run dev
-Navigate to http://localhost:5173 in your browser.
 
 ## Contributing:
 Feedback and contributions to this project are greatly appreciated.
