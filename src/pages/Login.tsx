@@ -79,7 +79,7 @@ export default function Login() {
     } catch (error) {
       console.error("Login error:", error); // Optional: for debugging
 
-
+      // Handle Firebase-specific errors
       if (error instanceof FirebaseError) {
         switch (error.code) {
           case "auth/invalid-credential":
