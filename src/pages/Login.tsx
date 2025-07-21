@@ -6,10 +6,10 @@ import { useDispatch } from "react-redux"; // Import Redux hook to dispatch acti
 import { setUser } from "../redux/slices/authSlice"; // Import action to update the user info in the Redux store
 import type { UserWithRole } from "../redux/slices/authSlice"; // Import type that includes user role (e.g., "admin" or "user")
 import { useState } from "react"; // Import React hook to manage component state
+import { FirebaseError } from "firebase/app"; // Import FirebaseError for type checking
 
 // Login component
 export default function Login() {
-
   // Local state for user credentials, error message, and loading status during login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,6 +41,7 @@ export default function Login() {
         email.trim(),
         password
       );
+
       // Get the authenticated Firebase user from the sign-in credentials
       const firebaseUser = userCred.user;
 
@@ -77,9 +78,27 @@ export default function Login() {
       navigate(fullUser.role === "admin" ? "/admin" : "/");
     } catch (error) {
       console.error("Login error:", error); // Optional: for debugging
-      setErrorMessage("Invalid email or password. Please try again.");
+
+      // Handle Firebase-specific errors
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case "auth/invalid-credential":
+            setErrorMessage("Invalid credentials provided. Please check and try again.");
+            break;
+          case "auth/wrong-password":
+          case "auth/user-not-found":
+            setErrorMessage("Invalid email or password. Please try again.");
+            break;
+          default:
+            setErrorMessage("Login failed. Please try again later.");
+        }
+      } else {
+        // Catch any non-Firebase errors
+        setErrorMessage("An unexpected error occurred. Please try again.");
+      }
+
       setLoading(false);
-   }
+    }
   };
 
   // JSX to render the login form
