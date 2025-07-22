@@ -1,5 +1,8 @@
 # E-commerce Final Project
 
+![CI](https://github.com/chuks2274/ecommerce_final/actions/workflows/ci-pipeline.yml/badge.svg)
+![Vercel Deploy](https://github.com/chuks2274/ecommerce_final/actions/workflows/vercel-deploy.yml/badge.svg)
+
 A responsive e-commerce web application built with React, TypeScript, Redux Toolkit, and Firebase.  
 It supports user registration/login, product browsing, cart management, checkout, order history, and admin-level product control.
 
@@ -16,12 +19,14 @@ This project uses **Jest** and **React Testing Library** to test pages and compo
 `src/pages/__tests__/Cart.test.tsx` | Unit tests for the `Cart` page — verifies rendering, quantity changes, and order logic. 
 `src/components/__tests__/ProductCard.test.tsx` | Tests the `ProductCard` UI — checks rendering, "add to cart" behavior, and responsiveness. 
 `src/components/__tests__/CartItemCard.test.tsx` | Validates individual cart item controls like quantity adjustment and remove functionality. 
-`src/components/__tests__/CartIntegration.test.tsx` | Integration test that simulates full cart behavior with multiple components working together. 
+`src/components/__tests__/CartIntegration.test.tsx` | Integration test that simulates full cart behavior with multiple components working together.
+
 ### Tools & Libraries
 **Jest** – Testing framework
 **React Testing Library** – For testing components as the user would interact
 **@testing-library/jest-dom** – Custom matchers like `toBeInTheDocument()`
 **Mock Firebase/Auth0** – (if applicable) to isolate test environment from real services
+
 ### Running Tests
 You can run all tests using:
 npm test
